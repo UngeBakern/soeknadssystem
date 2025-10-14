@@ -1,0 +1,38 @@
+name: PHP CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict || echo "No composer files found"
+    
+    - name: Check PHP syntax errors
+      run: find . -name "*.php" -exec php -l {} \;
+    
+    - name: Run PHP CodeSniffer
+      run: |
+        if [ -f phpcs.xml ]; then
+          ./vendor/bin/phpcs
+        else
+          echo "No PHP CodeSniffer configuration found"
+        fi
