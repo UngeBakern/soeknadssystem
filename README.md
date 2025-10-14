@@ -153,8 +153,6 @@ soeknadssystem/
 ├── .github/                       # GitHub configuration
 │   └── workflows/                 # CI/CD workflows
 │       └── php.yml                # Automated PHP testing
-├── FILSTRUKTUR_PLAN.md            # Detailed file structure documentation
-├── FILSTRUKTUR_PLAN.html          # HTML version of structure plan
 ├── .gitignore                     # Git ignore patterns
 ├── LICENSE                        # MIT License
 └── README.md                      # This file
