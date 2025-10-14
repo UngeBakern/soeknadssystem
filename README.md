@@ -19,12 +19,33 @@
 - Dashboard for both user types
 
 ## Technology Stack
-- **Backend**: PHP 8.x
+- **Backend**: PHP 8.x with Object-Oriented Programming
+- **Architecture**: Class-based structure with autoloading
 - **Database**: MySQL (via XAMPP) - Array-based storage initially
 - **Frontend**: HTML5, CSS3, Bootstrap 5
 - **Server**: Apache (XAMPP)
 - **Session Management**: PHP Sessions
 - **Version Control**: Git with GitHub integration
+
+## 🏗️ Architecture Overview
+
+### Class Library
+The system uses a modern object-oriented approach with the following core classes:
+
+- **`Auth`** - Handles user authentication and authorization
+- **`User`** - Manages user accounts and profiles
+- **`Job`** - Handles job postings and management
+- **`Application`** - Manages job applications and status tracking
+- **`Validator`** - Provides input validation and data sanitization
+
+### Include System
+- **`config.php`** - System configuration and session management
+- **`functions.php`** - Main include file that loads all components
+- **`autoload.php`** - Automatic class loading
+- **Helper functions** - Authentication and validation utilities
+
+### Data Storage
+Currently uses PHP arrays for rapid prototyping, with planned migration to MySQL database.
 
 ## 🚀 Complete Setup Guide
 
@@ -83,68 +104,86 @@ The system comes with pre-configured demo accounts for testing:
 
 ```
 soeknadssystem/
-├── index.php              # Main homepage
-├── auth/                  # Authentication
-│   ├── login.php          # User login
-│   ├── register.php       # User registration (planned)
-│   └── logout.php         # Logout functionality (planned)
-├── dashboard/             # User dashboards
-│   ├── employer.php       # Employer dashboard (planned)
-│   └── applicant.php      # Applicant dashboard (planned)
-├── jobs/                  # Job management
-│   ├── list.php           # Job listings (planned)
-│   ├── create.php         # Create job posting (planned)
-│   ├── edit.php           # Edit job posting (planned)
-│   └── view.php           # View job details (planned)
-├── applications/          # Application handling
-│   ├── apply.php          # Submit application (planned)
-│   ├── manage.php         # Manage applications (planned)
-│   └── status.php         # Application status (planned)
-├── profile/              # User profiles
-│   ├── view.php          # View profile (planned)
-│   └── edit.php          # Edit profile (planned)
-├── includes/             # Core functionality
-│   ├── config.php        # Configuration & session management
-│   ├── functions.php     # Helper functions
-│   └── auth.php          # Authentication functions (planned)
-├── assets/               # Static files
-│   ├── css/              # Custom stylesheets
-│   │   └── style.css     # Main stylesheet
-│   ├── js/               # JavaScript files
-│   │   └── main.js       # Main JavaScript
-│   └── images/           # Image assets
-├── data/                 # Data storage (temporary)
-│   ├── users.php         # User accounts (array-based)
-│   ├── jobs.php          # Job postings (array-based)
-│   └── applications.php  # Applications (array-based)
-├── uploads/              # File uploads
-│   └── README.md         # Upload directory info
-├── .github/              # GitHub configuration
-│   └── workflows/        # CI/CD workflows
-│       └── php.yml       # Automated PHP testing
-├── .gitignore            # Git ignore patterns
-├── LICENSE               # MIT License
-└── README.md             # This file
+├── index.php                       # Main homepage
+├── classes/                        # Object-Oriented Class Library
+│   ├── Auth.php                    # Authentication & authorization class
+│   ├── User.php                    # User management class
+│   ├── Job.php                     # Job management class
+│   ├── Application.php             # Application handling class
+│   └── Validator.php               # Input validation class
+├── includes/                       # Core system files
+│   ├── config.php                  # Configuration & session management
+│   ├── functions.php               # Main include file (loads everything)
+│   ├── autoload.php                # Automatic class loading
+│   ├── auth_functions.php          # Authentication helper functions
+│   └── validation_functions.php    # Input validation helpers
+├── auth/                          # Authentication system
+│   ├── login.php                  # User login page
+│   ├── register.php               # User registration (planned)
+│   └── logout.php                 # Logout functionality (planned)
+├── dashboard/                     # User dashboards
+│   ├── employer.php               # Employer dashboard (planned)
+│   └── applicant.php              # Applicant dashboard (planned)
+├── jobs/                          # Job management
+│   ├── list.php                   # Job listings (planned)
+│   ├── create.php                 # Create job posting (planned)
+│   ├── edit.php                   # Edit job posting (planned)
+│   └── view.php                   # View job details (planned)
+├── applications/                  # Application handling
+│   ├── apply.php                  # Submit application (planned)
+│   ├── manage.php                 # Manage applications (planned)
+│   └── status.php                 # Application status (planned)
+├── profile/                       # User profiles
+│   ├── view.php                   # View profile (planned)
+│   └── edit.php                   # Edit profile (planned)
+├── data/                          # Data storage (temporary arrays)
+│   ├── users.php                  # User accounts (array-based)
+│   ├── jobs.php                   # Job postings (array-based)
+│   └── applications.php           # Applications (array-based)
+├── database/                      # Database files
+│   └── schema.sql                 # Future MySQL database schema
+├── assets/                        # Static files
+│   ├── css/                       # Custom stylesheets
+│   │   └── style.css              # Main stylesheet
+│   ├── js/                        # JavaScript files
+│   │   └── main.js                # Main JavaScript
+│   └── images/                    # Image assets
+├── uploads/                       # File uploads directory
+│   └── README.md                  # Upload directory info
+├── .github/                       # GitHub configuration
+│   └── workflows/                 # CI/CD workflows
+│       └── php.yml                # Automated PHP testing
+├── FILSTRUKTUR_PLAN.md            # Detailed file structure documentation
+├── FILSTRUKTUR_PLAN.html          # HTML version of structure plan
+├── .gitignore                     # Git ignore patterns
+├── LICENSE                        # MIT License
+└── README.md                      # This file
 ```
 
 ## Development Phases
 
-### Phase 1: Basic Structure ✅
+### Phase 1: Foundation & Architecture ✅
 - [x] Project setup and Git repository
-- [x] User authentication with roles
+- [x] Object-oriented class library (Auth, User, Job, Application, Validator)
+- [x] Autoloading system for classes
+- [x] Helper functions and validation system
 - [x] Responsive design with Bootstrap
-- [x] Basic navigation and structure
+- [x] Clean file structure and organization
+- [x] Comprehensive documentation (FILSTRUKTUR_PLAN)
 
 ### Phase 2: Core Functionality (In Progress)
-- [ ] Job management (create, edit, view)
-- [ ] Application system with file handling
-- [ ] User profiles and dashboard
+- [ ] Complete authentication system with login/logout
+- [ ] Job management (create, edit, view, delete)
+- [ ] Application system with file upload handling
+- [ ] User profiles and dashboards
 - [ ] Search and filtering of jobs
+- [ ] Role-based access control
 
-### Phase 3: Database and Completion
-- [ ] MySQL database integration
-- [ ] Testing and bug fixes
-- [ ] Documentation and delivery
+### Phase 3: Database Integration & Finalization
+- [ ] MySQL database migration from array storage
+- [ ] Advanced features (notifications, email integration)
+- [ ] Testing, security hardening, and bug fixes
+- [ ] Final documentation and course delivery
 
 ## 👥 Team
 
