@@ -107,6 +107,7 @@ soeknadssystem/
 ├── index.php                       # Main homepage
 ├── classes/                        # Object-Oriented Class Library
 │   ├── Auth.php                    # Authentication & authorization class
+│   ├── Database.php                # Database class
 │   ├── User.php                    # User management class
 │   ├── Job.php                     # Job management class
 │   ├── Application.php             # Application handling class
