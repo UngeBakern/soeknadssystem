@@ -133,6 +133,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Favorite jobs functionality
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    favoriteButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const icon = button.querySelector('i');
+            const isFavorited = button.classList.contains('active');
+            
+            if (isFavorited) {
+                // Remove from favorites
+                button.classList.remove('active');
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.setAttribute('title', 'Legg til i favoritter');
+            } else {
+                // Add to favorites
+                button.classList.add('active');
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.setAttribute('title', 'Fjern fra favoritter');
+            }
+            
+            // Here you could add AJAX call to save favorite status
+            // saveFavoriteStatus(jobId, !isFavorited);
+        });
+    });
 });
 
 // Utility functions
