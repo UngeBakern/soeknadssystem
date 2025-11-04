@@ -9,8 +9,7 @@ class Validator
      */
     public static function validateEmail($email) 
     {
-        require_once __DIR__ . '/../validation_functions.php';
-        return validate_email($email);
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
     
     /**

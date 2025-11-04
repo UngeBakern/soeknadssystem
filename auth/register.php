@@ -1,6 +1,6 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
+
 
 // Redirect if already logged in
 if (is_logged_in()) {
@@ -11,7 +11,12 @@ if (is_logged_in()) {
 
 $error = '';
 $success = '';
-$user_type = $_GET['type'] ?? 'applicant'; // Default to applicant
+$user_type = $_GET['type'] ?? 'applicant';
+
+// Behold verdier ved feil
+$name = '';
+$email = '';
+$phone = '';
 
 if ($_POST) {
     $name = sanitize_input($_POST['name'] ?? '');
@@ -19,28 +24,41 @@ if ($_POST) {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     $user_type = sanitize_input($_POST['user_type'] ?? 'applicant');
+    $phone = sanitize_input($_POST['phone'] ?? '');
     
     // Validation
     if (empty($name) || empty($email) || empty($password)) {
-        $error = 'Alle felt må fylles ut';
-    } elseif (!validate_email($email)) {
+        $error = 'Navn, e-post og passord må fylles ut';
+    } elseif (!Validator::validateEmail($email)) {
         $error = 'Ugyldig e-postadresse';
     } elseif (strlen($password) < 6) {
         $error = 'Passord må være minst 6 tegn';
     } elseif ($password !== $confirm_password) {
         $error = 'Passordene stemmer ikke overens';
-    } elseif (get_user_by_email($email)) {
+    } elseif (User::findByEmail($email)) {
         $error = 'E-postadressen er allerede registrert';
     } else {
-        // Registration successful - in a real app, you'd save to database
-        // For now, we'll simulate login by setting session data
-        $_SESSION['user_id'] = uniqid(); // Generate temporary ID
-        $_SESSION['user_type'] = $user_type;
-        $_SESSION['user_name'] = $name;
-        
-        // Redirect to appropriate dashboard
-        $redirect_url = $user_type === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
-        redirect($redirect_url, 'Velkommen! Din konto er opprettet.', 'success');
+        // Opprett ny bruker med User-klassen
+        $user_id = User::create([
+            'name' => $name,
+            'email' => $email,
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'role' => $user_type,
+            'phone' => $phone
+        ]);
+
+        if ($user_id) {
+            // Logger inn bruker automatisk
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['user_type'] = $user_type;
+            $_SESSION['user_name'] = $name;
+            
+            // Redirect til dashboard
+            $redirect_url = $user_type === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
+            redirect($redirect_url, 'Velkommen! Din konto er opprettet.', 'success');
+        } else { 
+            $error = 'Noe gikk galt ved registrering. Prøv igjen.';
+        }
     }
 }
 ?>
@@ -78,7 +96,7 @@ if ($_POST) {
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" class="needs-validation" novalidate>
+                        <form method="POST" action="">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Fullt navn</label>
                                 <input type="text" 
@@ -121,51 +139,37 @@ if ($_POST) {
                             </div>
 
                             <div class="mb-3">
+                                <label for="phone" class="form-label">Telefonnummer (valgfritt)</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone" 
+                                       value="<?php echo htmlspecialchars($phone); ?>"
+                                       placeholder="12345678">
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="password" class="form-label">Passord</label>
-                                <!-- Fullt navn og e-postadresse (kun én gang) -->
-
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Passord</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="invalid-feedback">
-                                        Vennligst oppgi et passord.
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="confirm_password" class="form-label">Bekreft passord</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                    <div class="invalid-feedback">
-                                        Passordene stemmer ikke overens.
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Brukertype</label>
-                                    <select class="form-select" name="user_type" required>
-                                        <option value="applicant" <?php echo ($user_type === 'applicant') ? 'selected' : ''; ?>>Søker</option>
-                                        <option value="employer" <?php echo ($user_type === 'employer') ? 'selected' : ''; ?>>Arbeidsgiver</option>
-                                    </select>
-                                    <div class="invalid-feedback">
-                                        Vennligst velg brukertype.
-                                    </div>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label" style="font-size: 0.95rem;">Varslingsvalg</label>
-                                    <div class="d-flex gap-2" style="font-size: 0.95rem;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="notify_email" name="notify_email" style="transform: scale(0.9);">
-                                            <label class="form-check-label" for="notify_email">E-post</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="notify_sms" name="notify_sms" style="transform: scale(0.9);">
-                                            <label class="form-check-label" for="notify_sms">SMS</label>
-                                        </div>
-                                    </div>
-                                </div>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       required>
+                                <small class="text-muted">Minimum 6 tegn</small>
                                 <div class="invalid-feedback">
-                                    Du må godta vilkårene for å registrere deg.
+                                    Vennligst oppgi et passord.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Bekreft passord</label>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="confirm_password" 
+                                       name="confirm_password" 
+                                       required>
+                                <div class="invalid-feedback">
+                                    Passordene stemmer ikke overens.
                                 </div>
                             </div>
 
@@ -189,7 +193,7 @@ if ($_POST) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/main.js"></script>
+    <!----<script src="../assets/js/main.js"></script>---->
     
     <script>
     // Password confirmation validation

@@ -28,8 +28,4 @@ ini_set('display_errors', 1);
 // Timezone
 date_default_timezone_set('Europe/Oslo');
 
-// Include data files (array-based storage initially)
-require_once __DIR__ . '/../data/users.php';
-require_once __DIR__ . '/../data/jobs.php';
-require_once __DIR__ . '/../data/applications.php';
 ?>

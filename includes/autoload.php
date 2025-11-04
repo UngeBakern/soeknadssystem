@@ -6,6 +6,10 @@
 // Last inn config først (for constants og session)
 require_once __DIR__ . '/config.php';
 
+// Last inn hjelpefunksjoner 
+require_once __DIR__ . '/validation_functions.php';
+require_once __DIR__ . '/../includes/auth_functions.php';
+
 // Enkle includes for alle klasser
 require_once __DIR__ . '/../classes/Database.php';
 require_once __DIR__ . '/../classes/Auth.php';

@@ -1,0 +1,7 @@
+Array
+(
+    [email] => applicant@example.com
+    [password] => password
+)
+
+POST
