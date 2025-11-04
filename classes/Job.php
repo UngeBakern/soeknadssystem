@@ -2,17 +2,23 @@
 /**
  * Job Class - Enkel stillingsklasse
  */
-class Job extends Database
+class Job 
 {
     /**
      * Hent alle stillinger i databasen basert på om de er aktive 
      * 
      */
-    public function getAll() 
+    public static function getAll() 
     {   
+        $pdo = Database::connect();
+
         try {
-            $pdo = $this->connect();
-            $stmt = $pdo->query("SELECT * FROM jobs WHERE active = 1 ORDER BY created_at DESC");
+            $stmt = $pdo->query("SELECT jobs.*, users.name as employer_name 
+            FROM jobs 
+            LEFT JOIN users ON jobs.employer_id = users.id
+            WHERE jobs.is_archived = 0 
+            ORDER BY jobs.created_at DESC
+            ");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             return [];
