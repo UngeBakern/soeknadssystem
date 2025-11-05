@@ -1,20 +1,14 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
+require_once 'includes/autoload.php';
+include 'includes/header.php';
+
+
+// Sett sidevariable
+$page_title = 'Hjem';
+$body_class = 'bg-light d-flex flex-column min-vh-100';
+$show_nav = false;
+
 ?>
-
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hjelpelærer Søknadssystem</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex flex-column min-vh-100">
-    <!-- Navigation er fjernet for ren forside -->
-
     <!-- Hero Section -->
     <div class="container">
         <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
@@ -100,27 +94,5 @@ require_once 'includes/functions.php';
         </div>
     </div>
 
-    <!-- Footer -->
-        <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-muted">Hjelpelærer Søknadssystem</h6>
-                    <p class="text-muted small mb-0">Kobler sammen hjelpelærere og utdanningsinstitusjoner.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-muted small mb-0">
-                        <a href="#" class="text-muted me-3 text-decoration-none">Om oss</a>
-                        <a href="#" class="text-muted me-3 text-decoration-none">Kontakt</a>
-                        <a href="#" class="text-muted text-decoration-none">Support</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="assets/js/main.js"></script>
-</body>
-</html>
+<?php include_once 'includes/footer.php'; ?>
+   

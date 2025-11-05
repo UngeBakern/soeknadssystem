@@ -15,6 +15,7 @@ define('APP_NAME', 'Hjelpelærer Søknadssystem');
 define('APP_URL', 'http://localhost/soeknadssystem');
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+define('BASE_URL', '/soeknadssystem');
 
 // Start session if not already started
 if (session_status() == PHP_SESSION_NONE) {

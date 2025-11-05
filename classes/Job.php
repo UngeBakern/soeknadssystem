@@ -30,14 +30,20 @@ class Job
      */
     public static function findById($id) 
     {
-        global $jobs;
-        
-        foreach ($jobs as $job) {
-            if ($job['id'] === $id) {
-                return $job;
-            }
+        $pdo = Database::connect();
+
+        try {
+            $stmt = $pdo->prepare("
+            SELECT jobs.*, users.name as employer_name
+            FROM jobs 
+            LEFT JOIN users ON jobs.employer_id = users.id 
+            WHERE jobs.id = ?
+            LIMIT 1
+            ");
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return null;
         }
-        
-        return null;
     }
 }
