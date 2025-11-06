@@ -1,6 +1,6 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
+require_once '../includes/header.php';
 
 // Mockup: Hent id fra URL
 $job_id = $_GET['id'] ?? 1;

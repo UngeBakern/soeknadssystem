@@ -1,6 +1,5 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
 
 // Sjekk om bruker er innlogget og har riktig rolle
 // if (!is_logged_in() || !has_role('employer')) {

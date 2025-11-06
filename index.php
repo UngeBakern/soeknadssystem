@@ -1,12 +1,12 @@
 <?php
 require_once 'includes/autoload.php';
-include 'includes/header.php';
-
 
 // Sett sidevariable
 $page_title = 'Hjem';
 $body_class = 'bg-light d-flex flex-column min-vh-100';
 $show_nav = false;
+
+include 'includes/header.php';
 
 ?>
     <!-- Hero Section -->
