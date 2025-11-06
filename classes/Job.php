@@ -34,7 +34,8 @@ class Job
 
         try {
             $stmt = $pdo->prepare("
-            SELECT jobs.*, users.name as employer_name
+            SELECT 
+                jobs.*, users.name as employer_name
             FROM jobs 
             LEFT JOIN users ON jobs.employer_id = users.id 
             WHERE jobs.id = ?

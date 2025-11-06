@@ -2,6 +2,7 @@
 require_once '../includes/autoload.php';
 
 
+
 // Redirect if already logged in
 if (is_logged_in()) {
     $redirect_url = has_role('employer') ? '../dashboard/employer.php' : '../dashboard/applicant.php';

@@ -1,5 +1,13 @@
 <?php
 require_once '../includes/autoload.php';
+require_once '../includes/header.php';
+
+/*
+ * 
+ *
+ *
+ */
+
 
 // Sjekk om bruker er innlogget og har riktig rolle
 // if (!is_logged_in() || !has_role('employer')) {
@@ -37,29 +45,7 @@ if ($_POST) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rediger stilling - <?php echo APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="../index.php"><?php echo APP_NAME; ?></a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="../dashboard/employer.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../jobs/list.php">Stillinger</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../profile/view.php">Profil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../auth/logout.php">Logg ut</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
     <div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh;">
         <div class="row justify-content-center w-100">
             <div class="col-md-8 col-lg-7 col-xl-6 my-5">

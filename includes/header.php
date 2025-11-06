@@ -78,3 +78,4 @@
         </div>
     </nav>
     <?php endif; ?>
+    <main class="flex-grow-1">
