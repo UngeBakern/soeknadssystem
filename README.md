@@ -171,7 +171,7 @@ soeknadssystem/
 
 
 ### Phase 2: Core Functionality (In Progress)
-- [ ] Complete authentication system with login/logout
+- [x] Complete authentication system with login/logout
 - [ ] Job management (create, edit, view, delete)
 - [ ] Application system with file upload handling
 - [ ] User profiles and dashboards
