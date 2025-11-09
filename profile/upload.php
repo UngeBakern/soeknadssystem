@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     
     if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
    
-        $result = User::uploadDocument(
+        $result = Upload::uploadDocument(
             $_FILES['document'],
             $_SESSION['user_id'],
             $_POST['document_type'] ?? 'other'
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
     $document_id = filter_input(INPUT_POST, 'document_id', FILTER_VALIDATE_INT);
 
     if ($document_id) {
-        $result = User::deleteDocument($document_id, $_SESSION['user_id']);
+        $result = Upload::deleteDocument($document_id, $_SESSION['user_id']);
         
         // Bruk redirect() med flash message
         if ($result['success']) {
@@ -69,7 +69,7 @@ if (isset($_SESSION['flash_message'])) {
 }
 
 // Hent brukerens dokumenter
-$documents = User::getDocuments($_SESSION['user_id']);
+$documents = Upload::getDocuments($_SESSION['user_id']);
 
 // Sett sidevariabler
 $page_title = 'Last opp dokumenter';
@@ -166,7 +166,7 @@ include_once '../includes/header.php';
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-file-<?php echo $doc['file_type'] === 'pdf' ? 'pdf' : 'alt'; ?> fa-2x text-primary me-3"></i>
                                         <div>
-                                            <h6 class="mb-0"><?php echo htmlspecialchars($doc['original_name']); ?></h6>
+                                            <h6 class="mb-0"><?php echo htmlspecialchars($doc['original_filename']); ?></h6>
                                             <small class="text-muted">
                                                 <?php 
                                                 $types = [
@@ -176,7 +176,7 @@ include_once '../includes/header.php';
                                                     'other' => 'Annet'
                                                 ];
                                                 echo ($types[$doc['document_type']] ?? 'Dokument') . ' • '; 
-                                                echo User::formatFileSize($doc['file_size']) . ' • ';
+                                                echo Upload::formatFileSize($doc['file_size']) . ' • ';
                                                 echo date('d.m.Y H:i', strtotime($doc['created_at']));
                                                 ?>
                                             </small>

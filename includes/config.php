@@ -13,7 +13,9 @@ ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
 // Application settings
 define('APP_NAME', 'Hjelpelærer Søknadssystem');
 define('APP_URL', 'http://localhost/soeknadssystem');
-define('UPLOAD_PATH', __DIR__ . '/../uploads/');
+define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'] . '/soeknadssystem');
+define('UPLOAD_PATH', BASE_PATH . '/uploads/');
+define('UPLOAD_DIR_WEB', 'uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 define('BASE_URL', '/soeknadssystem');
 
