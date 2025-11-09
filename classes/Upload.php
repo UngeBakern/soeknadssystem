@@ -1,6 +1,8 @@
-    <?php
-    
-    class Upload
+<?php
+/**
+ * Filopplastingsklasse - Håndterer dokumentopplastinger
+ */
+class Upload
     {
     
     /** 
@@ -29,9 +31,9 @@
             return ['success' => false, 'message' => 'For mange opplastinger. Prøv igjen senere.'];
         }
 
-        // Saniter original filnavn 
+        // Fjerner farlige tegn fra originalt filnavn   
         $original_name = basename($file['name']);// Fjerner path
-        $original_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_name); // Fjerner farlige tegn 
+        $original_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_name); 
 
         // Kataloger
         $uploadDirFs = $_SERVER['DOCUMENT_ROOT'] . '/soeknadssystem/uploads/';

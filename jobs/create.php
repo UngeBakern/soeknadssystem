@@ -8,6 +8,70 @@ require_once '../includes/header.php';
  *
  */
 
+// Sjekk at bruker er innlogget og er arbeidsgiver 
+if (!is_logged_in()) {
+    redirect('../auth/login.php', 'Du må være logget inn for å opprette en stilling.', 'error');
+}
+
+if (!has_role('employer') && !has_role('admin')) {
+    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan opprette stillinger.', 'error');
+}
+
+$error = '';
+$success = '';
+
+// HÅNDTER POST-REQUEST 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = sanitize_input($_POST['title']);
+    $company = sanitize_input($_POST['company']); 
+    $location = sanitize_input($_POST['location']);
+    $job_type = sanitize_input($_POST['job_type']);
+    $description = sanitize_input($_POST['description']);
+    $requirements = sanitize_input($_POST['requirements']);
+    $salary = sanitize_input($_POST['salary']);
+    $deadline = sanitize_input($_POST['deadline']);
+    $hours_per_week = sanitize_input($_POST['hours_per_week'] ?? '');
+    $subject = sanitize_input($_POST['subject'] ?? '');
+    $level = sanitize_input($_POST['level'] ?? '');
+
+    // Validering
+    if (!validate_required($title) ||
+        !validate_required($location) ||
+        !validate_required($job_type) ||
+        !validate_required($description) ||
+        !validate_required($requirements) ||
+        !validate_required($deadline)) {
+        $error = 'Vennligst fyll ut alle obligatoriske felt.';
+    } elseif (strlen($description) < 50) {
+        $error = 'Stillingsbeskrivelsen må være minst 50 tegn.';
+    } elseif (!empty($deadline) && strtotime($deadline) < time()) {
+        $error = 'Søknadsfristen må være en fremtidig dato.';
+    } else {
+
+        // Opprett ny jobb
+        $new_job = [
+            'employer_id' => $_SESSION['user_id'],
+            'title' => $title,
+            'company' => $company,
+            'location' => $location,
+            'job_type' => $job_type,
+            'description' => $description,
+            'requirements' => $requirements,
+            'salary' => $salary,
+            'deadline' => $deadline,
+            'status' => 'active'
+        ];
+
+        $result = Job::create($new_job);
+
+        if ($result) {
+            redirect('../dashboard/employer.php', 'Stilling opprettet og publisert!', 'success');
+        } else {
+            $error = 'Det oppstod en feil under opprettelsen av stillingen. Vennligst prøv igjen.';
+        }
+    }
+}
+
 ?>
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -16,10 +80,27 @@ require_once '../includes/header.php';
                     <h1 class="h2 mb-2">Opprett ny stilling</h1>
                     <p class="text-muted">Fyll ut informasjonen under for å publisere din stillingsutlysning</p>
                 </div>
+
+                <?php if ($error): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <?php echo htmlspecialchars($error); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <?php echo htmlspecialchars($success); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <form>
-                            <!-- Basic Information -->
+                        <form method="POST" action="">
+                          <!-- Basic Information -->
                             <div class="row">
                                 <div class="col-md-12 mb-2">
                                     <label for="title" class="form-label" style="font-size:0.95rem;">
@@ -27,7 +108,20 @@ require_once '../includes/header.php';
                                         Stillingstittel *
                                     </label>
                                     <input type="text" class="form-control form-control-sm" id="title" name="title" 
+                                           value="<?php echo htmlspecialchars($_POST['title'] ?? ''); ?>"
                                            placeholder="F.eks. Hjelpelærer i matematikk" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-2">
+                                    <label for="company" class="form-label">
+                                        <i class="fas fa-building me-1"></i>
+                                        Bedrift/Organisasjon *
+                                    </label>
+                                    <input type="text" class="form-control" id="company" name="company" 
+                                           value="<?php echo htmlspecialchars($_POST['company'] ?? $_SESSION['user_name'] ?? ''); ?>"
+                                           placeholder="F.eks. Oslo Kommune" required>
                                 </div>
                             </div>
 
@@ -38,19 +132,20 @@ require_once '../includes/header.php';
                                         Lokasjon *
                                     </label>
                                     <input type="text" class="form-control" id="location" name="location" 
+                                           value="<?php echo htmlspecialchars($_POST['location'] ?? ''); ?>"
                                            placeholder="F.eks. Oslo" required>
                                 </div>
                                 <div class="col-md-6 mb-2">
-                                    <label for="employment_type" class="form-label">
+                                    <label for="job_type" class="form-label">
                                         <i class="fas fa-clock me-1"></i>
                                         Stillingstype *
                                     </label>
-                                    <select class="form-select" id="employment_type" name="employment_type" required>
+                                    <select class="form-select" id="job_type" name="job_type" required>
                                         <option value="">Velg stillingstype</option>
-                                        <option value="Heltid">Heltid</option>
-                                        <option value="Deltid">Deltid</option>
-                                        <option value="Ekstrahjelp">Ekstrahjelp</option>
-                                        <option value="Vikariat">Vikariat</option>
+                                        <option value="Heltid" <?php echo (($_POST['job_type'] ?? '') === 'Heltid') ? 'selected' : ''; ?>>Heltid</option>
+                                        <option value="Deltid" <?php echo (($_POST['job_type'] ?? '') === 'Deltid') ? 'selected' : ''; ?>>Deltid</option>
+                                        <option value="Ekstrahjelp" <?php echo (($_POST['job_type'] ?? '') === 'Ekstrahjelp') ? 'selected' : ''; ?>>Ekstrahjelp</option>
+                                        <option value="Vikariat" <?php echo (($_POST['job_type'] ?? '') === 'Vikariat') ? 'selected' : ''; ?>>Vikariat</option>
                                     </select>
                                 </div>
                             </div>
@@ -62,6 +157,7 @@ require_once '../includes/header.php';
                                         Timer per uke
                                     </label>
                                     <input type="number" class="form-control" id="hours_per_week" name="hours_per_week" 
+                                           value="<?php echo htmlspecialchars($_POST['hours_per_week'] ?? ''); ?>"
                                            min="1" max="40" placeholder="F.eks. 20">
                                 </div>
                                 <div class="col-md-6 mb-2">
@@ -70,6 +166,7 @@ require_once '../includes/header.php';
                                         Lønn
                                     </label>
                                     <input type="text" class="form-control" id="salary" name="salary" 
+                                           value="<?php echo htmlspecialchars($_POST['salary'] ?? ''); ?>"
                                            placeholder="F.eks. 200-250 kr/time eller Etter avtale">
                                 </div>
                             </div>
@@ -79,7 +176,9 @@ require_once '../includes/header.php';
                                     <i class="fas fa-calendar-alt me-1"></i>
                                     Søknadsfrist *
                                 </label>
-                                <input type="date" class="form-control" id="deadline" name="deadline" required>
+                                <input type="date" class="form-control" id="deadline" name="deadline" 
+                                       value="<?php echo htmlspecialchars($_POST['deadline'] ?? ''); ?>"
+                                       min="<?php echo date('Y-m-d'); ?>" required>
                             </div>
 
                             <!-- Job Description -->
@@ -89,7 +188,7 @@ require_once '../includes/header.php';
                                     Stillingsbeskrivelse *
                                 </label>
                                 <textarea class="form-control" id="description" name="description" rows="5" 
-                                          placeholder="Beskriv stillingen, arbeidsoppgaver og hva dere ser etter..." required></textarea>
+                                          placeholder="Beskriv stillingen, arbeidsoppgaver og hva dere ser etter..." required><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
                                 <div class="form-text">Minst 50 tegn</div>
                             </div>
 
@@ -100,7 +199,7 @@ require_once '../includes/header.php';
                                     Krav og kvalifikasjoner *
                                 </label>
                                 <textarea class="form-control" id="requirements" name="requirements" rows="4" 
-                                          placeholder="Liste opp krav til utdanning, erfaring og andre kvalifikasjoner..." required></textarea>
+                                          placeholder="Liste opp krav til utdanning, erfaring og andre kvalifikasjoner..." required><?php echo htmlspecialchars($_POST['requirements'] ?? ''); ?></textarea>
                                 <div class="form-text">F.eks. utdanningsnivå, relevant erfaring, språkkrav</div>
                             </div>
 
@@ -116,24 +215,24 @@ require_once '../includes/header.php';
                                             <label for="subject" class="form-label">Fag/område</label>
                                             <select class="form-select" id="subject" name="subject">
                                                 <option value="">Velg fag</option>
-                                                <option value="Matematikk">Matematikk</option>
-                                                <option value="Norsk">Norsk</option>
-                                                <option value="Engelsk">Engelsk</option>
-                                                <option value="Naturfag">Naturfag</option>
-                                                <option value="Samfunnsfag">Samfunnsfag</option>
-                                                <option value="Historie">Historie</option>
-                                                <option value="Annet">Annet</option>
+                                                <option value="Matematikk" <?php echo (($_POST['subject'] ?? '') === 'Matematikk') ? 'selected' : ''; ?>>Matematikk</option>
+                                                <option value="Norsk" <?php echo (($_POST['subject'] ?? '') === 'Norsk') ? 'selected' : ''; ?>>Norsk</option>
+                                                <option value="Engelsk" <?php echo (($_POST['subject'] ?? '') === 'Engelsk') ? 'selected' : ''; ?>>Engelsk</option>
+                                                <option value="Naturfag" <?php echo (($_POST['subject'] ?? '') === 'Naturfag') ? 'selected' : ''; ?>>Naturfag</option>
+                                                <option value="Samfunnsfag" <?php echo (($_POST['subject'] ?? '') === 'Samfunnsfag') ? 'selected' : ''; ?>>Samfunnsfag</option>
+                                                <option value="Historie" <?php echo (($_POST['subject'] ?? '') === 'Historie') ? 'selected' : ''; ?>>Historie</option>
+                                                <option value="Annet" <?php echo (($_POST['subject'] ?? '') === 'Annet') ? 'selected' : ''; ?>>Annet</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="level" class="form-label">Utdanningsnivå</label>
                                             <select class="form-select" id="level" name="level">
                                                 <option value="">Velg nivå</option>
-                                                <option value="Barneskole">Barneskole</option>
-                                                <option value="Ungdomsskole">Ungdomsskole</option>
-                                                <option value="Videregående">Videregående</option>
-                                                <option value="Høyere utdanning">Høyere utdanning</option>
-                                                <option value="Alle nivåer">Alle nivåer</option>
+                                                <option value="Barneskole" <?php echo (($_POST['level'] ?? '') === 'Barneskole') ? 'selected' : ''; ?>>Barneskole</option>
+                                                <option value="Ungdomsskole" <?php echo (($_POST['level'] ?? '') === 'Ungdomsskole') ? 'selected' : ''; ?>>Ungdomsskole</option>
+                                                <option value="Videregående" <?php echo (($_POST['level'] ?? '') === 'Videregående') ? 'selected' : ''; ?>>Videregående</option>
+                                                <option value="Høyere utdanning" <?php echo (($_POST['level'] ?? '') === 'Høyere utdanning') ? 'selected' : ''; ?>>Høyere utdanning</option>
+                                                <option value="Alle nivåer" <?php echo (($_POST['level'] ?? '') === 'Alle nivåer') ? 'selected' : ''; ?>>Alle nivåer</option>
                                             </select>
                                         </div>
                                     </div>
@@ -147,9 +246,9 @@ require_once '../includes/header.php';
                                     Obligatoriske felt
                                 </small>
                                 <div class="d-flex align-items-center justify-content-end">
-                                    <a href="list.php" class="btn btn-outline-secondary me-2">
+                                    <a href="../dashboard/employer.php" class="btn btn-outline-secondary me-2">
                                         <i class="fas fa-arrow-left me-2"></i>
-                                        Tilbake
+                                        Avbryt
                                     </a>
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-paper-plane me-2"></i>
@@ -160,12 +259,8 @@ require_once '../includes/header.php';
                         </form>
                     </div>
                 </div>
-
-                <!-- Preview Card (skjult for nå) -->
-                <!-- ...existing code... -->
             </div>
         </div>
     </div>
 
- <?php include_once '../includes/footer.php'; ?>
-
+<?php include_once '../includes/footer.php'; ?>

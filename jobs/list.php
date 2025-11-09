@@ -2,6 +2,13 @@
 require_once '../includes/autoload.php';
 include_once '../includes/header.php';
 
+/*
+ * 
+ * 
+ * 
+ *
+ */
+
 // Hent alle stillinger
 $jobs = Job::getAll();
 

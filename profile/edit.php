@@ -1,6 +1,14 @@
 <?php
 require_once '../includes/autoload.php';
 
+
+/*
+ * 
+ * 
+ * 
+ *
+ */
+
 // Mockup: Hent brukerdata fra session
 $user_name = $_SESSION['user_name'] ?? 'Demo Bruker';
 $user_email = $_SESSION['user_email'] ?? 'demo@example.com';

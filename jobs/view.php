@@ -3,9 +3,35 @@ require_once '../includes/autoload.php';
 
 /*
  * 
- *
+ * 
+ * 
  *
  */
+// Håndterer sletting av jobb
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_job'])) {
+    // sjekk at bruker er innlogget
+    if (!is_logged_in()) {
+        redirect('../login.php', 'Du må være logget inn for å slette en stilling.', 'danger');
+    }
+
+    $delete_job_id = filter_input(INPUT_POST, 'delete_job', FILTER_VALIDATE_INT);
+
+    if ($delete_job_id) {
+        $job_to_delete = Job::findById($delete_job_id);
+
+        // Sjekk om brukeren eier jobben eller er admin 
+        if ($job_to_delete && ($job_to_delete['employer_id'] == $_SESSION['user_id'] || has_role('admin'))) {
+          if (Job::delete($delete_job_id)) {
+                redirect('../dashboard/employer.php', 'Stillingen er slettet!', 'success');
+            } else {
+                redirect('view.php?id=' . $delete_job_id, 'Kunne ikke slette stilling.', 'danger');
+            }
+        } else {
+            redirect('view.php?id=' . $delete_job_id, 'Du har ikke tilgang.', 'danger');
+        }
+    }
+}
+
 
 //Hent jobb ID fra URL
 $job_id = $_GET['id'] ?? null;
@@ -100,11 +126,11 @@ require_once '../includes/header.php';
 
                     <!-- Job Details -->
                     <div class="row mb-4">
-                        <?php if (!empty($job['type'])): ?>
+                        <?php if (!empty($job['job_type'])): ?>
                         <div class="col-md-4 mb-3">
                             <div class="p-3 bg-light rounded">
                                 <small class="text-muted d-block mb-1">Stillingstype</small>
-                                <strong><?php echo htmlspecialchars($job['type']); ?></strong>
+                                <strong><?php echo htmlspecialchars($job['job_type']); ?></strong>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -165,11 +191,20 @@ require_once '../includes/header.php';
                             Se alle stillinger
                         </a>
 
-                        <?php if (is_logged_in() && has_role('employer') && $job['employer_id'] == $_SESSION['user_id']): ?>
+                        <?php if (is_logged_in() && ((has_role('employer') && $job['employer_id'] == $_SESSION['user_id']) || has_role('admin'))): ?>
                             <a href="edit.php?id=<?php echo $job['id']; ?>" class="btn btn-outline-primary">
                                 <i class="fas fa-edit me-2"></i>
                                 Rediger stilling
                             </a>
+
+                            <form method="POST" style="display: inline;"
+                                  onsubmit="return confirm('Er du sikker på at du vil slette denne stillingen?');">
+                                <input type="hidden" name="delete_job" value="<?php echo $job['id']; ?>">
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash me-2"></i>
+                                    Slett stilling
+                                </button>
+                            </form>
                         <?php endif; ?>
                     </div>
                 </div>

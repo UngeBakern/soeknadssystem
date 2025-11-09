@@ -2,6 +2,13 @@
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
 
+/*
+ * 
+ * 
+ * 
+ *
+ */
+
 // Mockup: Hent brukerdata fra session
 $user_name = $_SESSION['user_name'] ?? 'Demo Søker';
 

@@ -1,6 +1,14 @@
 <?php
 require_once '../includes/autoload.php';
 
+
+/*
+ * 
+ * 
+ * 
+ *
+ */
+
 // Sjekk om bruker er innlogget
 if (!is_logged_in()) {
     redirect('../auth/login.php', 'Du må være innlogget for å se profilen', 'warning');
