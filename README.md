@@ -169,10 +169,9 @@ soeknadssystem/
 - [x] Responsive design with Bootstrap
 - [x] Clean file structure and organization
 
-
 ### Phase 2: Core Functionality (In Progress)
 - [x] Complete authentication system with login/logout
-- [ ] Job management (create, edit, view, delete)
+- [x] Job management (create, edit, view, delete)
 - [ ] Application system with file upload handling
 - [ ] User profiles and dashboards
 - [ ] Search and filtering of jobs
