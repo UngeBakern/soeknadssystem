@@ -1,6 +1,6 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
+
 
 // Redirect if already logged in
 if (is_logged_in()) {
@@ -11,6 +11,7 @@ if (is_logged_in()) {
 
 $error = '';
 
+
 if ($_POST) {
     $email = sanitize_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -19,16 +20,17 @@ if ($_POST) {
         $error = 'Både e-post og passord må fylles ut';
     } else {
         $user = get_user_by_email($email);
-        
-        if ($user && verify_password($password, $user['password'])) {
+
+        if ($user && verify_password($password, $user['password_hash'])) {
             // Login successful
             $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_type'] = $user['type'];
+            $_SESSION['user_type'] = $user['role'];
             $_SESSION['user_name'] = $user['name'];
-            
-            $redirect_url = $user['type'] === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
+
+            $redirect_url = $user['role'] === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
             redirect($redirect_url, 'Velkommen tilbake!', 'success');
         } else {
+
             $error = 'Ugyldig e-post eller passord';
         }
     }
@@ -61,7 +63,7 @@ if ($_POST) {
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" class="needs-validation" novalidate>
+                        <form method="POST" action="login.php">
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-postadresse</label>
                                 <input type="email" 
@@ -127,6 +129,6 @@ if ($_POST) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/main.js"></script>
+   <!--- <script src="../assets/js/main.js"></script> --->
 </body>
 </html>

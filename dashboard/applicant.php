@@ -1,68 +1,44 @@
 <?php
 require_once '../includes/autoload.php';
+require_once '../includes/header.php';
 
-// Midlertidig: Kommentert ut autentisering for testing
-// if (!is_logged_in() || !has_role('applicant')) {
-//     redirect('../auth/login.php', 'Du må logge inn som søker for å se denne siden.', 'error');
-// }
+/*
+ * 
+ *
+ *
+ */
 
-// Mock data for bruker
-$user_name = $_SESSION['user_name'] ?? 'Demo Søker';
+// Sjekk innlogging og rolle 
+if (!is_logged_in() || !has_role('applicant')) {
+    redirect('../auth/login.php', 'Du må logge inn som søker.', 'error');
+}
 
-// Mock data for anbefalte stillinger
-$recommended_jobs = [
-    [
-        'id' => 1,
-        'title' => 'Hjelpelærer i matematikk',
-        'employer_name' => 'Universitetet i Agder',
-        'location' => 'Kristiansand',
-        'created_at' => '2024-10-15'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Norsk hjelpelærer',
-        'employer_name' => 'Universitetet i Agder', 
-        'location' => 'Grimstad',
-        'created_at' => '2024-10-14'
-    ],
-    [
-        'id' => 3,
-        'title' => 'IT-hjelpelærer',
-        'employer_name' => 'Universitetet i Agder',
-        'location' => 'Kristiansand',
-        'created_at' => '2024-10-13'
-    ]
+// Hent brukerinfo 
+$user_name = $_SESSION['user_name'] ?? 'Bruker';
+$user_id = $_SESSION['user_id'];
+
+// Hent data fra Models 
+$all_jobs = Job::getAll();
+$my_applications = Application::getByApplicant($user_id);
+$recommended_jobs = array_slice($all_jobs, 0, 3);
+
+// Beregn statistikk 
+$stats = [
+    'available_jobs' => count($all_jobs),
+    'my_applications' => count($my_applications), 
+    'pending' => count(array_filter($my_applications, fn($app) => $app['status'] === 'pending')),
+    'favorites' => 0
 ];
 
-// Mock data for statistikk
-$total_available_jobs = 5;
-$my_applications = []; // Tom for nå
+// Sett sidevariabler
+$page_title = 'Dashboard - Søker';
+$body_class = 'bg-light';
+
 ?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Søker Dashboard - Hjelpelærer Søknadssystem</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-            </a>
-            
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../jobs/list.php">Alle stillinger</a>
-                <a class="nav-link" href="applicant.php">Dashboard</a>
-                <a class="nav-link" href="../profile/view.php">Profil</a>
-                <a class="nav-link" href="../auth/logout.php">Logg ut</a>
-            </div>
-        </div>
-    </nav>
+
+
+
+
 
     <!-- Page Header -->
     <div class="container py-5">
@@ -116,7 +92,7 @@ $my_applications = []; // Tom for nå
                         <div class="row text-center">
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 bg-primary bg-opacity-10 rounded">
-                                    <h3 class="text-primary mb-1"><?php echo $total_available_jobs; ?></h3>
+                                    <h3 class="text-primary mb-1"><?php echo $stats['available_jobs']?></h3>
                                     <small class="text-muted">Tilgjengelige stillinger</small>
                                 </div>
                             </div>
@@ -245,27 +221,4 @@ $my_applications = []; // Tom for nå
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-top py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-muted">Hjelpelærer Søknadssystem</h6>
-                    <p class="text-muted small mb-0">Kobler sammen hjelpelærere og utdanningsinstitusjoner.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-muted small mb-0">
-                        <a href="#" class="text-muted me-3 text-decoration-none">Om oss</a>
-                        <a href="#" class="text-muted me-3 text-decoration-none">Kontakt</a>
-                        <a href="#" class="text-muted text-decoration-none">Support</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/main.js"></script>
-</body>
-</html>
+<?php include_once '../includes/footer.php'; ?>

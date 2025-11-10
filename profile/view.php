@@ -1,40 +1,40 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
 
-// Mockup: Hent brukerdata fra session
-$user_name = $_SESSION['user_name'] ?? 'Demo Bruker';
-$user_email = $_SESSION['user_email'] ?? 'demo@example.com';
-$user_type = $_SESSION['user_type'] ?? 'applicant';
+
+/*
+ * 
+ * 
+ * 
+ *
+ */
+
+// Sjekk om bruker er innlogget
+if (!is_logged_in()) {
+    redirect('../auth/login.php', 'Du må være innlogget for å se profilen', 'warning');
+}
+
+// Hent full brukerdata fra database
+$user_id = $_SESSION['user_id'];
+$user = User::findById($user_id);
+
+if (!$user) {
+    redirect('../auth/logout.php', 'Bruker ikke funnet', 'danger');
+}
+
+// Brukervennlige variabler
+$user_name = $user['name'];
+$user_email = $user['email'];
+$user_type = $user['role'];
 $type_label = $user_type === 'employer' ? 'Arbeidsgiver' : 'Søker';
-$user_birthdate = $_SESSION['user_birthdate'] ?? '01.01.2000';
-$user_phone = $_SESSION['user_phone'] ?? '+47 400 00 000';
-$user_address = $_SESSION['user_address'] ?? 'Eksempelveien 1, 1234 Oslo';
+$user_phone = $user['phone'] ?? 'Ikke oppgitt';
+$user_birthdate = $user['birthdate'] ?? 'Ikke oppgitt';
+$user_address = $user['address'] ?? 'Ikke oppgitt';
+
+include_once '../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Min profil - <?php echo APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex flex-column min-vh-100">
-    <!-- Dashboard Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../jobs/list.php">Alle stillinger</a>
-                <a class="nav-link" href="../dashboard/<?php echo $user_type; ?>.php">Dashboard</a>
-                <a class="nav-link active" href="view.php">Profil</a>
-                <a class="nav-link" href="../auth/logout.php">Logg ut</a>
-            </div>
-        </div>
-    </nav>
+
+
 
     <!-- Page Header -->
     <div class="container py-5">
@@ -109,27 +109,4 @@ $user_address = $_SESSION['user_address'] ?? 'Eksempelveien 1, 1234 Oslo';
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-muted">Hjelpelærer Søknadssystem</h6>
-                    <p class="text-muted small mb-0">Kobler sammen hjelpelærere og utdanningsinstitusjoner.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-muted small mb-0">
-                        <a href="#" class="text-muted me-3 text-decoration-none">Om oss</a>
-                        <a href="#" class="text-muted me-3 text-decoration-none">Kontakt</a>
-                        <a href="#" class="text-muted text-decoration-none">Support</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/main.js"></script>
-</body>
-</html>
+<?php include_once '../includes/footer.php'; ?>

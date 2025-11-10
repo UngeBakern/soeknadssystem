@@ -1,153 +1,233 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
 
-// Mockup: Hent id fra URL
-$job_id = $_GET['id'] ?? 1;
+/*
+ * 
+ * 
+ * 
+ *
+ */
+// Håndterer sletting av jobb
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_job'])) {
+    // sjekk at bruker er innlogget
+    if (!is_logged_in()) {
+        redirect('../login.php', 'Du må være logget inn for å slette en stilling.', 'danger');
+    }
 
-// Mockup: Stillingsdata
-$jobs = [
-    1 => [
-        'title' => 'Hjelpelærer i matematikk',
-        'employer_name' => 'Universitetet i Agder',
-        'location' => 'Kristiansand',
-        'description' => 'Undervisning og veiledning i matematikk for studenter. Arbeidsoppgaver inkluderer gruppearbeid, oppgaveløsning og støtte til hovedlærer.',
-        'requirements' => 'Relevant utdanning innen matematikk. Gode samarbeidsevner. Erfaring med undervisning er en fordel.',
-        'deadline' => '2024-11-15',
-        'type' => 'Deltid',
-        'salary' => 'Etter avtale',
-        'subject' => 'Matematikk',
-        'level' => 'Høyere utdanning'
-    ],
-    2 => [
-        'title' => 'Norsk hjelpelærer',
-        'employer_name' => 'Universitetet i Agder',
-        'location' => 'Grimstad',
-        'description' => 'Støtte til norskundervisning for elever på videregående. Fokus på skriftlig og muntlig norsk.',
-        'requirements' => 'Utdanning i norsk. Erfaring med ungdom er en fordel.',
-        'deadline' => '2024-11-20',
-        'type' => 'Ekstrahjelp',
-        'salary' => '200 kr/time',
-        'subject' => 'Norsk',
-        'level' => 'Videregående'
-    ],
-    3 => [
-        'title' => 'IT-hjelpelærer',
-        'employer_name' => 'Universitetet i Agder',
-        'location' => 'Kristiansand',
-        'description' => 'Veiledning i IT-fag, programmering og systemutvikling. Praktisk hjelp i lab og prosjektarbeid.',
-        'requirements' => 'IT-utdanning. Erfaring med programmering og systemutvikling.',
-        'deadline' => '2024-11-10',
-        'type' => 'Vikariat',
-        'salary' => '250 kr/time',
-        'subject' => 'IT',
-        'level' => 'Høyere utdanning'
-    ]
-];
+    $delete_job_id = filter_input(INPUT_POST, 'delete_job', FILTER_VALIDATE_INT);
 
-$job = $jobs[$job_id] ?? $jobs[1];
+    if ($delete_job_id) {
+        $job_to_delete = Job::findById($delete_job_id);
+
+        // Sjekk om brukeren eier jobben eller er admin 
+        if ($job_to_delete && ($job_to_delete['employer_id'] == $_SESSION['user_id'] || has_role('admin'))) {
+          if (Job::delete($delete_job_id)) {
+                redirect('../dashboard/employer.php', 'Stillingen er slettet!', 'success');
+            } else {
+                redirect('view.php?id=' . $delete_job_id, 'Kunne ikke slette stilling.', 'danger');
+            }
+        } else {
+            redirect('view.php?id=' . $delete_job_id, 'Du har ikke tilgang.', 'danger');
+        }
+    }
+}
+
+
+//Hent jobb ID fra URL
+$job_id = $_GET['id'] ?? null;
+
+if (!$job_id) {
+    redirect('list.php', 'Ingen jobb valgt.', 'error');
+}
+
+// Bruker Jobb-klassen til å hente fra database 
+$job =Job::findById($job_id);
+
+if (!$job) {
+    redirect('list.php', 'Jobben finnes ikke.', 'error');
+}
+
+// Sjekk om bruker allerede har søkt (Kjøres kun hvis innlogget)
+$has_applied = false; 
+if (is_logged_in() && has_role('applicant')) {
+
+}
+
+// Sett sidevariabler 
+$page_title = $job['title'];
+$body_class = 'bg-light';
+
+require_once '../includes/header.php';
+
 ?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($job['title']); ?> - <?php echo APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="list.php">Alle stillinger</a>
-                <a class="nav-link" href="../dashboard/applicant.php">Dashboard</a>
-                <a class="nav-link" href="../profile/view.php">Profil</a>
-                <a class="nav-link" href="../auth/logout.php">Logg ut</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back button -->
+            <div class="mb-3">
+                <a href="list.php" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Tilbake til stillinger
+                </a>
             </div>
-        </div>
-    </nav>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body p-5">
-                        <div class="d-flex align-items-center mb-4">
-                            <img src="../uialogo.jpeg" alt="UiA logo" style="max-width:70px; max-height:70px;" class="me-3">
-                            <div>
-                                <h1 class="h3 mb-1 fw-bold"><?php echo htmlspecialchars($job['title']); ?></h1>
-                                <div class="text-muted mb-1">
-                                    <strong><?php echo htmlspecialchars($job['employer_name']); ?></strong> &bull; <?php echo htmlspecialchars($job['location']); ?>
-                                </div>
-                                <div class="small text-muted">
-                                    Søknadsfrist: <?php echo date('d.m.Y', strtotime($job['deadline'])); ?>
-                                </div>
+
+            <!-- Job Details Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="me-3">
+                            <img src="../assets/images/uialogo.jpeg" 
+                                 alt="Logo" 
+                                 style="width: 70px; height: 70px; object-fit: contain;"
+                                 onerror="this.src='https://via.placeholder.com/70'">
+                        </div>
+                        <div>
+                            <h1 class="h3 mb-1 fw-bold"><?php echo htmlspecialchars($job['title']); ?></h1>
+                            <div class="text-muted mb-1">
+                                <i class="fas fa-building me-1"></i>
+                                <strong><?php echo htmlspecialchars($job['employer_name']); ?></strong>
+                                <?php if (!empty($job['location'])): ?>
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <?php echo htmlspecialchars($job['location']); ?>
+                                <?php endif; ?>
+                            </div>
+                            <?php if (!empty($job['deadline'])): ?>
+                            <div class="small text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Søknadsfrist: <?php echo date('d.m.Y', strtotime($job['deadline'])); ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Stillingsbeskrivelse
+                        </h5>
+                        <p class="text-muted"><?php echo nl2br(htmlspecialchars($job['description'])); ?></p>
+                    </div>
+
+                    <!-- Requirements -->
+                    <?php if (!empty($job['requirements'])): ?>
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Krav og kvalifikasjoner
+                        </h5>
+                        <p class="text-muted"><?php echo nl2br(htmlspecialchars($job['requirements'])); ?></p>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Job Details -->
+                    <div class="row mb-4">
+                        <?php if (!empty($job['job_type'])): ?>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-1">Stillingstype</small>
+                                <strong><?php echo htmlspecialchars($job['job_type']); ?></strong>
                             </div>
                         </div>
-                        <hr>
-                        <div class="mb-4">
-                            <h5 class="mb-2">Stillingsbeskrivelse</h5>
-                            <p><?php echo htmlspecialchars($job['description']); ?></p>
-                        </div>
-                        <div class="mb-4">
-                            <h5 class="mb-2">Krav og kvalifikasjoner</h5>
-                            <p><?php echo htmlspecialchars($job['requirements']); ?></p>
-                        </div>
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-2">
-                                <span class="text-muted">Stillingstype:</span><br>
-                                <strong><?php echo htmlspecialchars($job['type']); ?></strong>
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <span class="text-muted">Lønn:</span><br>
+                        <?php endif; ?>
+
+                        <?php if (!empty($job['salary'])): ?>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-1">Lønn</small>
                                 <strong><?php echo htmlspecialchars($job['salary']); ?></strong>
                             </div>
-                            <div class="col-md-4 mb-2">
-                                <span class="text-muted">Fag/område:</span><br>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($job['subject'])): ?>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-1">Fag/område</small>
                                 <strong><?php echo htmlspecialchars($job['subject']); ?></strong>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <span class="text-muted">Utdanningsnivå:</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (!empty($job['level'])): ?>
+                    <div class="mb-4">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block mb-1">Utdanningsnivå</small>
                             <strong><?php echo htmlspecialchars($job['level']); ?></strong>
                         </div>
-                        <div class="d-flex gap-2">
-                            <a href="apply.php?id=<?php echo $job_id; ?>" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                Søk på stillingen
+                    </div>
+                    <?php endif; ?>
+
+                    <hr>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <?php if (is_logged_in() && has_role('applicant')): ?>
+                            <?php if ($has_applied): ?>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-check me-2"></i>
+                                    Du har allerede søkt
+                                </button>
+                            <?php else: ?>
+                                <a href="apply.php?id=<?php echo $job['id']; ?>" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    Søk på stillingen
+                                </a>
+                            <?php endif; ?>
+                        <?php elseif (!is_logged_in()): ?>
+                            <a href="../auth/login.php" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Logg inn for å søke
                             </a>
-                            <a href="list.php" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>
-                                Tilbake til stillinger
+                        <?php endif; ?>
+
+                        <a href="list.php" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>
+                            Se alle stillinger
+                        </a>
+
+                        <?php if (is_logged_in() && ((has_role('employer') && $job['employer_id'] == $_SESSION['user_id']) || has_role('admin'))): ?>
+                            <a href="edit.php?id=<?php echo $job['id']; ?>" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>
+                                Rediger stilling
                             </a>
-                        </div>
+
+                            <form method="POST" style="display: inline;"
+                                  onsubmit="return confirm('Er du sikker på at du vil slette denne stillingen?');">
+                                <input type="hidden" name="delete_job" value="<?php echo $job['id']; ?>">
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash me-2"></i>
+                                    Slett stilling
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-muted">Hjelpelærer Søknadssystem</h6>
-                    <p class="text-muted small mb-0">Kobler sammen hjelpelærere og utdanningsinstitusjoner.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
+
+            <!-- Additional Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="mb-3">
+                        <i class="fas fa-building text-primary me-2"></i>
+                        Om arbeidsgiver
+                    </h6>
+                    <p class="text-muted mb-2">
+                        <?php echo htmlspecialchars($job['employer_name']); ?>
+                    </p>
                     <p class="text-muted small mb-0">
-                        <a href="#" class="text-muted me-3 text-decoration-none">Om oss</a>
-                        <a href="#" class="text-muted me-3 text-decoration-none">Kontakt</a>
-                        <a href="#" class="text-muted text-decoration-none">Support</a>
+                        <i class="fas fa-clock me-1"></i>
+                        Publisert: <?php echo date('d.m.Y', strtotime($job['created_at'])); ?>
                     </p>
                 </div>
             </div>
         </div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="../assets/js/main.js"></script>
-</body>
-</html>
+    </div>
+</div>
+
+<?php include_once '../includes/footer.php'; ?>

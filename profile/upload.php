@@ -1,88 +1,213 @@
 <?php
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
+require_once '../includes/autoload.php';
+
+/**
+ * Upload side som lar brukere laste opp dokumenter som CV, vitnemål, attester osv.
+ * Dokumentene lagres sikkert på serveren og knyttes til brukerens profil.
+ * Brukeren må være innlogget for å få tilgang til denne siden.
+ * Dokumentene valideres for filtype og størrelse før opplasting.
+ */
 
 // Sjekk om bruker er innlogget
-// if (!is_logged_in()) {
-//     redirect('../auth/login.php', 'Du må være innlogget for å laste opp dokumenter.', 'danger');
-// }
+if (!is_logged_in()) {
+    redirect('../auth/login.php', 'Du må være innlogget for å laste opp dokumenter.', 'danger');
+}
 
+// Håndter filopplasting
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
+    
+    if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
+   
+        $result = Upload::uploadDocument(
+            $_FILES['document'],
+            $_SESSION['user_id'],
+            $_POST['document_type'] ?? 'other'
+        );
+
+        // Bruk redirect() med flash message
+        if ($result['success']) {
+            redirect('upload.php', $result['message'], 'success');
+        } else {
+            redirect('upload.php', $result['message'], 'danger');
+        }
+
+    } else {
+        redirect('upload.php', 'Ingen fil valgt eller feil ved opplasting.', 'danger');
+    }
+}
+
+// Håndter sletting 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+    $document_id = filter_input(INPUT_POST, 'document_id', FILTER_VALIDATE_INT);
+
+    if ($document_id) {
+        $result = Upload::deleteDocument($document_id, $_SESSION['user_id']);
+        
+        // Bruk redirect() med flash message
+        if ($result['success']) {
+            redirect('upload.php', $result['message'], 'success');
+        } else {
+            redirect('upload.php', $result['message'], 'danger');
+        }
+    }
+    
+    redirect('upload.php', 'Ugyldig dokument-ID.', 'danger');
+}
+
+// Vis flash messages
 $error = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
-        $upload_dir = '../uploads/';
-        $filename = basename($_FILES['document']['name']);
-        $target_path = $upload_dir . $filename;
-        if (move_uploaded_file($_FILES['document']['tmp_name'], $target_path)) {
-            $success = 'Dokumentet er lastet opp!';
-        } else {
-            $error = 'Kunne ikke laste opp dokumentet.';
-        }
+if (isset($_SESSION['flash_message'])) {
+    if ($_SESSION['flash_type'] === 'success') {
+        $success = $_SESSION['flash_message'];
     } else {
-        $error = 'Ingen fil valgt eller feil ved opplasting.';
+        $error = $_SESSION['flash_message'];
     }
+    
+    unset($_SESSION['flash_message'], $_SESSION['flash_type']);
 }
+
+// Hent brukerens dokumenter
+$documents = Upload::getDocuments($_SESSION['user_id']);
+
+// Sett sidevariabler
+$page_title = 'Last opp dokumenter';
+$body_class = 'bg-light';
+
+include_once '../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Last opp dokumenter - <?php echo APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="../index.php"></a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="../dashboard/applicant.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../profile/view.php">Profil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../auth/logout.php">Logg ut</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-        <div class="row justify-content-center w-100">
-            <div class="col-md-5 col-lg-4 col-xl-4 my-5">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <h1 class="h4 mb-3 fw-normal">Last opp dokumenter</h1>
-                            <p class="text-muted">Her kan du laste opp relevante dokumenter, som CV, vitnemål eller attester.</p>
-                        </div>
-                        <?php if (!empty($error)): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo htmlspecialchars($error); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (!empty($success)): ?>
-                            <div class="alert alert-success" role="alert">
-                                <?php echo htmlspecialchars($success); ?>
-                            </div>
-                        <?php endif; ?>
-                        <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                            <div class="mb-3">
-                                <label for="document" class="form-label">Velg dokument</label>
-                                <input type="file" class="form-control" id="document" name="document" required>
-                                <div class="invalid-feedback">Vennligst velg et dokument.</div>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Last opp</button>
-                        </form>
-                        <hr>
-                        <div class="mt-3 text-center">
-                            <a href="../dashboard/applicant.php" class="btn btn-outline-secondary">Tilbake til dashboard</a>
-                        </div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                        <h1 class="h3 mb-3 fw-normal">Last opp dokumenter</h1>
+                        <p class="text-muted">
+                            Her kan du laste opp relevante dokumenter, som CV, vitnemål eller attester.
+                        </p>
                     </div>
+
+                    <?php if (!empty($error)): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <?php echo htmlspecialchars($error); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($success)): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <?php echo htmlspecialchars($success); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        
+                        <div class="mb-3">
+                            <label for="document_type" class="form-label">Dokumenttype</label>
+                            <select class="form-select" id="document_type" name="document_type" required>
+                                <option value="">Velg type...</option>
+                                <option value="cv">CV / Søknad</option>
+                                <option value="certificate">Attest / Sertifikat</option>
+                                <option value="transcript">Vitnemål / Karakterutskrift</option>
+                                <option value="other">Annet</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Vennligst velg dokumenttype.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="document" class="form-label">Velg dokument</label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="document" 
+                                   name="document" 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                   required>
+                            <div class="invalid-feedback">
+                                Vennligst velg et dokument.
+                            </div>
+                            <small class="text-muted">
+                                Tillatte formater: PDF, DOC, DOCX, JPG, PNG (maks 5MB)
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="upload" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>
+                                Last opp
+                            </button>
+                            <a href="../dashboard/applicant.php" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Tilbake til dashboard
+                            </a>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3">Mine dokumenter</h6>
+                    
+                    <?php if (empty($documents)): ?>
+                        <div class="list-group">
+                            <div class="list-group-item text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-2x mb-2"></i>
+                                <p class="mb-0">Ingen dokumenter lastet opp ennå</p>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="list-group">
+                            <?php foreach ($documents as $doc): ?>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-<?php echo $doc['file_type'] === 'pdf' ? 'pdf' : 'alt'; ?> fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0"><?php echo htmlspecialchars($doc['original_filename']); ?></h6>
+                                            <small class="text-muted">
+                                                <?php 
+                                                $types = [
+                                                    'cv' => 'CV/Søknad',
+                                                    'certificate' => 'Attest',
+                                                    'transcript' => 'Vitnemål',
+                                                    'other' => 'Annet'
+                                                ];
+                                                echo ($types[$doc['document_type']] ?? 'Dokument') . ' • '; 
+                                                echo Upload::formatFileSize($doc['file_size']) . ' • ';
+                                                echo date('d.m.Y H:i', strtotime($doc['created_at']));
+                                                ?>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <a href="../<?php echo htmlspecialchars($doc['file_path']); ?>" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           target="_blank"
+                                           title="Åpne dokument">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <form method="POST" style="display: inline;" 
+                                              onsubmit="return confirm('Er du sikker på at du vil slette dette dokumentet?');">
+                                            <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
+                                            <button type="submit" 
+                                                    name="delete" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Slett dokument">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+
+<?php include_once '../includes/footer.php'; ?>
