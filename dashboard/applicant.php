@@ -1,16 +1,17 @@
 <?php
 require_once '../includes/autoload.php';
-require_once '../includes/header.php';
 
 /*
- * 
- *
- *
+ * Dashboard for søker
  */
 
 // Sjekk innlogging og rolle 
-if (!is_logged_in() || !has_role('applicant')) {
-    redirect('../auth/login.php', 'Du må logge inn som søker.', 'error');
+if (!is_logged_in()) {
+    redirect('../auth/login.php', 'Du må logge inn som søker.', 'danger');
+}
+
+if (!has_role('applicant')) {
+    redirect('../dashboard/employer.php', 'Kun søkere kan bruke dette dashboardet.', 'danger');
 }
 
 // Hent brukerinfo 
@@ -22,24 +23,26 @@ $all_jobs = Job::getAll();
 $my_applications = Application::getByApplicant($user_id);
 $recommended_jobs = array_slice($all_jobs, 0, 3);
 
+// Filtrer søknader med status 'Vurderes' 
+$pending_applications = array_filter($my_applications, function($app) {
+    return $app['status'] === 'Vurderes';
+});
+
 // Beregn statistikk 
 $stats = [
-    'available_jobs' => count($all_jobs),
-    'my_applications' => count($my_applications), 
-    'pending' => count(array_filter($my_applications, fn($app) => $app['status'] === 'pending')),
-    'favorites' => 0
+    'available_jobs'        => count($all_jobs),
+    'my_applications'       => count($my_applications), 
+    'pending'               => count($pending_applications),
+    'favorites'             => 0
 ];
 
 // Sett sidevariabler
 $page_title = 'Dashboard - Søker';
 $body_class = 'bg-light';
 
+require_once '../includes/header.php';
+
 ?>
-
-
-
-
-
     <!-- Page Header -->
     <div class="container py-5">
         <div class="row">
@@ -48,6 +51,7 @@ $body_class = 'bg-light';
                     <h1 class="h2 mb-2">Velkommen, <?php echo htmlspecialchars($user_name); ?>!</h1>
                     <p class="text-muted">Finn din neste hjelpelærerstilling</p>
                 </div>
+                <?php render_flash_messages(); ?>
             </div>
         </div>
     </div>
@@ -104,13 +108,13 @@ $body_class = 'bg-light';
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 bg-warning bg-opacity-10 rounded">
-                                    <h3 class="text-warning mb-1">0</h3>
+                                    <h3 class="text-warning mb-1"><?php echo $stats['pending']; ?></h3>
                                     <small class="text-muted">Under vurdering</small>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 bg-info bg-opacity-10 rounded">
-                                    <h3 class="text-info mb-1">0</h3>
+                                    <h3 class="text-info mb-1"><?php echo $stats['favorites']; ?></h3>
                                     <small class="text-muted">Favoritter</small>
                                 </div>
                             </div>

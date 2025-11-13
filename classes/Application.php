@@ -2,8 +2,62 @@
 /**
  * Application Class - Enkel søknadsklasse
  */
-class Application 
-{
+class Application {
+
+    /**
+     * Opprett ny søknad 
+     */
+    public static function create($data) 
+    {
+        $pdo = Database::connect();
+
+        try {
+            $stmt = $pdo->prepare("
+            INSERT INTO applications (job_id, applicant_id, cover_letter, cv_path, status, created_at)
+            VALUES (?, ?, ?, ?, 'Mottatt', NOW())
+            ");
+            $stmt->execute([
+                $data['job_id'],
+                $data['applicant_id'],
+                $data['cover_letter'],
+                $data['cv_path']
+            ]);
+            return $pdo->lastInsertId();
+        } catch (PDOException $e) {
+            error_log("Database error in create: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Sjekk om bruker allerede har søkt på stilling
+     */
+    public static function hasApplied($job_id, $user_id) 
+    {
+        $pdo = Database::connect();
+
+        try {
+            $stmt = $pdo->prepare("
+            SELECT COUNT(*) as count 
+            FROM applications
+            WHERE job_id = :job_id AND applicant_id = :user_id
+            ");
+            $stmt->execute([
+                ':job_id' => $job_id,
+                ':user_id'=> $user_id
+            ]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $result['count'] > 0;
+        } catch (PDOException $e) {
+            error_log("Database error in hasApplied: " . $e->getMessage());
+            return false; 
+        }
+    }
+
+
+
+
     /**
      * Hent alle søknader
      */

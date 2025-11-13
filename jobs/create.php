@@ -1,38 +1,34 @@
 <?php
 require_once '../includes/autoload.php';
-require_once '../includes/header.php';
 
 /*
- * 
- *
- *
+ * Opprett ny stillingsannonse
  */
 
 // Sjekk at bruker er innlogget og er arbeidsgiver 
 if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være logget inn for å opprette en stilling.', 'error');
+    redirect('../auth/login.php', 'Du må være logget inn for å opprette en stilling.', 'danger');
 }
 
 if (!has_role('employer') && !has_role('admin')) {
-    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan opprette stillinger.', 'error');
+    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan opprette stillinger.', 'danger');
 }
 
-$error = '';
-$success = '';
-
-// HÅNDTER POST-REQUEST 
+// Håndter POST-request  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = sanitize_input($_POST['title']);
-    $company = sanitize_input($_POST['company']); 
-    $location = sanitize_input($_POST['location']);
-    $job_type = sanitize_input($_POST['job_type']);
-    $description = sanitize_input($_POST['description']);
-    $requirements = sanitize_input($_POST['requirements']);
-    $salary = sanitize_input($_POST['salary']);
-    $deadline = sanitize_input($_POST['deadline']);
-    $hours_per_week = sanitize_input($_POST['hours_per_week'] ?? '');
-    $subject = sanitize_input($_POST['subject'] ?? '');
-    $level = sanitize_input($_POST['level'] ?? '');
+    $title          = sanitize_input($_POST['title']                ?? '');
+    $company        = $_SESSION['user_name'] ?? 'Ukjent arbeidsgiver';
+    $description    = sanitize_input($_POST['description']          ?? '');
+    $requirements   = sanitize_input($_POST['requirements']         ?? '');
+    $location       = sanitize_input($_POST['location']             ?? '');
+    $salary         = sanitize_input($_POST['salary']               ?? '');
+    $job_type       = sanitize_input($_POST['job_type']             ?? '');
+    $subject        = sanitize_input($_POST['subject']              ?? '');
+    $education_level= sanitize_input($_POST['education_level']      ?? '');
+    $deadline       = sanitize_input($_POST['deadline']             ?? '');
+    $hours_per_week = sanitize_input($_POST['hours_per_week']       ?? '');
+    //TODO Lagre hours_per_week i databasen senere.
+    
 
     // Validering
     if (!validate_required($title) ||
@@ -41,25 +37,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         !validate_required($description) ||
         !validate_required($requirements) ||
         !validate_required($deadline)) {
-        $error = 'Vennligst fyll ut alle obligatoriske felt.';
+
+        show_error('Vennligst fyll ut alle obligatoriske felt.');
+
     } elseif (strlen($description) < 50) {
-        $error = 'Stillingsbeskrivelsen må være minst 50 tegn.';
+
+        show_error('Stillingsbeskrivelsen må være minst 50 tegn.');
+
     } elseif (!empty($deadline) && strtotime($deadline) < time()) {
-        $error = 'Søknadsfristen må være en fremtidig dato.';
+
+        show_error('Søknadsfristen må være en fremtidig dato.');
+
     } else {
 
         // Opprett ny jobb
         $new_job = [
-            'employer_id' => $_SESSION['user_id'],
-            'title' => $title,
-            'company' => $company,
-            'location' => $location,
-            'job_type' => $job_type,
-            'description' => $description,
-            'requirements' => $requirements,
-            'salary' => $salary,
-            'deadline' => $deadline,
-            'status' => 'active'
+            'employer_id'    => $_SESSION['user_id'],
+            'title'          => $title,
+            'company'        => $company,
+            'description'    => $description,
+            'requirements'   => $requirements,
+            'location'       => $location,
+            'salary'         => $salary,
+            'job_type'       => $job_type,
+            'subject'        => $subject,
+            'education_level'=> $education_level,
+            'deadline'       => $deadline,
+            'status'         => 'active'   
         ];
 
         $result = Job::create($new_job);
@@ -67,12 +71,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result) {
             redirect('../dashboard/employer.php', 'Stilling opprettet og publisert!', 'success');
         } else {
-            $error = 'Det oppstod en feil under opprettelsen av stillingen. Vennligst prøv igjen.';
+            show_error('Det oppstod en feil under opprettelsen av stillingen. Vennligst prøv igjen.');
         }
     }
 }
 
+// Sett sidevariabler 
+$page_title = 'Opprett ny stilling';
+$body_class = 'bg-light';
+
+require_once '../includes/header.php';
 ?>
+
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-6 col-md-8">
@@ -81,21 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="text-muted">Fyll ut informasjonen under for å publisere din stillingsutlysning</p>
                 </div>
 
-                <?php if ($error): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <?php echo htmlspecialchars($error); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($success): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <?php echo htmlspecialchars($success); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
+                <?php render_flash_messages(); ?>
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
@@ -109,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <input type="text" class="form-control form-control-sm" id="title" name="title" 
                                            value="<?php echo htmlspecialchars($_POST['title'] ?? ''); ?>"
-                                           placeholder="F.eks. Hjelpelærer i matematikk" required>
+                                           placeholder="F.eks. Hjelpelærer i PHP" required>
                                 </div>
                             </div>
 
@@ -117,11 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="col-md-12 mb-2">
                                     <label for="company" class="form-label">
                                         <i class="fas fa-building me-1"></i>
-                                        Bedrift/Organisasjon *
+                                        Bedrift/Organisasjon
                                     </label>
                                     <input type="text" class="form-control" id="company" name="company" 
-                                           value="<?php echo htmlspecialchars($_POST['company'] ?? $_SESSION['user_name'] ?? ''); ?>"
-                                           placeholder="F.eks. Oslo Kommune" required>
+                                           value="<?php echo htmlspecialchars($_SESSION['user_name'] ?? ''); ?>" readonly>
                                 </div>
                             </div>
 
@@ -133,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <input type="text" class="form-control" id="location" name="location" 
                                            value="<?php echo htmlspecialchars($_POST['location'] ?? ''); ?>"
-                                           placeholder="F.eks. Oslo" required>
+                                           placeholder="F.eks. Universitetet i Agder" required>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <label for="job_type" class="form-label">
@@ -225,14 +220,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </select>
                                         </div>
                                         <div class="col-md-6 mb-2">
-                                            <label for="level" class="form-label">Utdanningsnivå</label>
-                                            <select class="form-select" id="level" name="level">
+                                            <label for="education_level" class="form-label">Utdanningsnivå</label>
+                                            <select class="form-select" id="education_level" name="education_level">
                                                 <option value="">Velg nivå</option>
-                                                <option value="Barneskole" <?php echo (($_POST['level'] ?? '') === 'Barneskole') ? 'selected' : ''; ?>>Barneskole</option>
-                                                <option value="Ungdomsskole" <?php echo (($_POST['level'] ?? '') === 'Ungdomsskole') ? 'selected' : ''; ?>>Ungdomsskole</option>
-                                                <option value="Videregående" <?php echo (($_POST['level'] ?? '') === 'Videregående') ? 'selected' : ''; ?>>Videregående</option>
-                                                <option value="Høyere utdanning" <?php echo (($_POST['level'] ?? '') === 'Høyere utdanning') ? 'selected' : ''; ?>>Høyere utdanning</option>
-                                                <option value="Alle nivåer" <?php echo (($_POST['level'] ?? '') === 'Alle nivåer') ? 'selected' : ''; ?>>Alle nivåer</option>
+                                                <option value="Barneskole" <?php echo (($_POST['education_level'] ?? '') === 'Barneskole') ? 'selected' : ''; ?>>Barneskole</option>
+                                                <option value="Ungdomsskole" <?php echo (($_POST['education_level'] ?? '') === 'Ungdomsskole') ? 'selected' : ''; ?>>Ungdomsskole</option>
+                                                <option value="Videregående" <?php echo (($_POST['education_level'] ?? '') === 'Videregående') ? 'selected' : ''; ?>>Videregående</option>
+                                                <option value="Høyere utdanning" <?php echo (($_POST['education_level'] ?? '') === 'Høyere utdanning') ? 'selected' : ''; ?>>Høyere utdanning</option>
+                                                <option value="Alle nivåer" <?php echo (($_POST['education_level'] ?? '') === 'Alle nivåer') ? 'selected' : ''; ?>>Alle nivåer</option>
                                             </select>
                                         </div>
                                     </div>

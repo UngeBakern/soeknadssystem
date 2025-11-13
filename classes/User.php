@@ -2,8 +2,7 @@
 /**
  * User Class - Enkel brukerklasse
  */
-class User 
-{
+class User {
     /**
      * Finn bruker basert på e-post
      */

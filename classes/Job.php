@@ -2,8 +2,7 @@
 /**
  * Job Class - Enkel stillingsklasse
  */
-class Job 
-{
+class Job {
     /**
      * Hent alle stillinger i databasen basert på om de er aktive 
      * 
@@ -61,21 +60,23 @@ class Job
         try {
             $stmt = $pdo->prepare("
             INSERT INTO jobs 
-            (employer_id, title, company, location, job_type, description, requirements, salary, deadline, status, created_at, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            (employer_id, title, company, description, requirements, location, salary, job_type, subject, education_level, deadline, status, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
 
             $result = $stmt->execute([
                 $data['employer_id'],
                 $data['title'],
-                $data['company'],
-                $data['location'],
-                $data['job_type'],
-                $data['description'],
-                $data['requirements'] ?? '',
-                $data['salary'] ?? '',
-                $data['deadline'] ?? null,
-                $data['status'] ?? 'active'
+                $data['company']            ?? '',
+                $data['description']        ?? '',
+                $data['requirements']       ?? '',
+                $data['location']           ?? '',
+                $data['salary']             ?? '',
+                $data['job_type']           ?? '',
+                $data['subject']            ?? '',
+                $data['education_level']    ?? '',
+                $data['deadline']           ?: null,
+                $data['status']             ?? 'active'
             ]);
 
             if ($result) {

@@ -3,18 +3,67 @@
  * Hovedfunksjoner for søknadssystemet
  */
 
-/**
- * Vis suksessmelding
- */
-function show_success($message) {
-    return '<div class="alert alert-success">' . htmlspecialchars($message) . '</div>';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 /**
  * Vis feilmelding
  */
+function set_flash($message, $type = 'success') {
+    $_SESSION['flash_messages'][] = [
+        'message' => $message,
+        'type' => $type, // 'success', 'danger', 'info', 'warning'
+    ];
+}
+
+/**
+ * Shortcut: suksessmelding
+ */
+function show_success($message) {
+    set_flash($message, 'success');
+}
+
+/**
+ * Feilmelding 
+ */
 function show_error($message) {
-    return '<div class="alert alert-danger">' . htmlspecialchars($message) . '</div>';
+    set_flash($message, 'danger'); 
+}
+
+/**
+ * Hent og tøm flash-meldinger
+ */
+function get_flash_messages() {
+    $messages = $_SESSION['flash_messages'] ?? [];
+    unset($_SESSION['flash_messages']);
+    return $messages;
+}
+
+/**
+ * Renderer flashmeldinger
+ */
+function render_flash_messages() {
+    $flash_messages = get_flash_messages();
+
+    if(empty($flash_messages)) {
+        return;
+    }
+
+    foreach ($flash_messages as $flash) {
+
+        $type = htmlspecialchars($flash['type'] ?? 'danger');
+        $message = htmlspecialchars($flash['message'] ?? '');
+
+        if ($message === '') {
+            continue;
+        }
+
+        echo '<div class="alert alert-' . $type . ' alert-dismissible fade show" role="alert">
+            ' . $message . '
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Lukk"></button>
+        </div>';
+    }
 }
 
 /**

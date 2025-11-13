@@ -2,8 +2,7 @@
 /**
  * Auth Class - Enkel autentiseringsklasse
  */
-class Auth 
-{
+class Auth {
     /**
      * Sjekk om bruker er innlogget
      */

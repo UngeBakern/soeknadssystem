@@ -54,20 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
     redirect('upload.php', 'Ugyldig dokument-ID.', 'danger');
 }
 
-// Vis flash messages
-$error = '';
-$success = '';
-
-if (isset($_SESSION['flash_message'])) {
-    if ($_SESSION['flash_type'] === 'success') {
-        $success = $_SESSION['flash_message'];
-    } else {
-        $error = $_SESSION['flash_message'];
-    }
-    
-    unset($_SESSION['flash_message'], $_SESSION['flash_type']);
-}
-
 // Hent brukerens dokumenter
 $documents = Upload::getDocuments($_SESSION['user_id']);
 
@@ -90,8 +76,8 @@ include_once '../includes/header.php';
                             Her kan du laste opp relevante dokumenter, som CV, vitnemål eller attester.
                         </p>
                     </div>
-
-                    <?php if (!empty($error)): ?>
+                    <?php render_flash_messages(); ?>
+                    <!---<?php if (!empty($error)): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <?php echo htmlspecialchars($error); ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -103,7 +89,7 @@ include_once '../includes/header.php';
                             <?php echo htmlspecialchars($success); ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    <?php endif; ?>
+                    <?php endif; ?>--->
 
                     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                         

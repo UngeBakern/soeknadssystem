@@ -1,57 +1,64 @@
 <?php
 require_once '../includes/autoload.php';
 
-/*
- * 
- * 
- * 
- *
+/* 
+ * Visning av jobber
  */
-// Håndterer sletting av jobb
+
+// Håndterer sletting av jobb (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_job'])) {
-    // sjekk at bruker er innlogget
+
+    // Sjekk innlogging
     if (!is_logged_in()) {
-        redirect('../login.php', 'Du må være logget inn for å slette en stilling.', 'danger');
+        redirect('../auth/login.php', 'Du må være logget inn for å slette en stilling.', 'danger');
     }
 
     $delete_job_id = filter_input(INPUT_POST, 'delete_job', FILTER_VALIDATE_INT);
 
-    if ($delete_job_id) {
-        $job_to_delete = Job::findById($delete_job_id);
+    if(!$delete_job_id) {
+        redirect('list.php', 'Ugyldig jobb ID.', 'danger');
+    }
 
-        // Sjekk om brukeren eier jobben eller er admin 
-        if ($job_to_delete && ($job_to_delete['employer_id'] == $_SESSION['user_id'] || has_role('admin'))) {
-          if (Job::delete($delete_job_id)) {
-                redirect('../dashboard/employer.php', 'Stillingen er slettet!', 'success');
-            } else {
-                redirect('view.php?id=' . $delete_job_id, 'Kunne ikke slette stilling.', 'danger');
-            }
-        } else {
-            redirect('view.php?id=' . $delete_job_id, 'Du har ikke tilgang.', 'danger');
-        }
+    $job_to_delete = Job::findById($delete_job_id);
+
+    if(!$job_to_delete){
+        redirect('list.php', 'Jobben finnes ikke.', 'danger');
+    }
+
+    // Sjekk: Eier jobben eller er admin 
+    if ($job_to_delete['employer_id'] != $_SESSION['user_id'] && !has_role('admin')) {
+        redirect('view.php?id=' . $delete_job_id, 'Du har ikke tilgang til å slette denne jobben.', 'danger');
+    } 
+
+    // Forsøk å slette 
+    if (Job::delete($delete_job_id)) {
+
+        redirect('../dashboard/employer.php', 'Stillingen er slettet!', 'success');
+    } else {
+
+        redirect('view.php?id=' . $delete_job_id, 'Kunne ikke slette stilling.', 'danger');
     }
 }
 
+    // Hent jobb-ID fra URL (GET)
+    $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-//Hent jobb ID fra URL
-$job_id = $_GET['id'] ?? null;
+    if (!$job_id) {
+    redirect('list.php', 'Ugyldig jobb ID.', 'danger');
+    }
 
-if (!$job_id) {
-    redirect('list.php', 'Ingen jobb valgt.', 'error');
-}
+    $job = Job::findById($job_id); 
 
-// Bruker Jobb-klassen til å hente fra database 
-$job =Job::findById($job_id);
+    if(!$job) {
+    redirect('list.php', 'Jobben finnes ikke.', 'danger');
+    }
 
-if (!$job) {
-    redirect('list.php', 'Jobben finnes ikke.', 'error');
-}
 
-// Sjekk om bruker allerede har søkt (Kjøres kun hvis innlogget)
-$has_applied = false; 
-if (is_logged_in() && has_role('applicant')) {
-
-}
+    // Sjekk om brukeren har søkt 
+    $has_applied = false;
+    if (is_logged_in() && has_role('applicant')) {
+        //TODO : Iplementer funksjon for å sjekke om brukeren har søkt
+    }
 
 // Sett sidevariabler 
 $page_title = $job['title'];
@@ -61,6 +68,7 @@ require_once '../includes/header.php';
 
 ?>
 <div class="container py-5">
+    <?php render_flash_messages(); ?>
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <!-- Back button -->
@@ -154,11 +162,11 @@ require_once '../includes/header.php';
                         <?php endif; ?>
                     </div>
 
-                    <?php if (!empty($job['level'])): ?>
+                    <?php if (!empty($job['education_level'])): ?>
                     <div class="mb-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block mb-1">Utdanningsnivå</small>
-                            <strong><?php echo htmlspecialchars($job['level']); ?></strong>
+                            <strong><?php echo htmlspecialchars($job['education_level']); ?></strong>
                         </div>
                     </div>
                     <?php endif; ?>

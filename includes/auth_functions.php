@@ -33,11 +33,11 @@ function verify_password($password, $hash) {
     return password_verify($password, $hash);
 }
 
-function redirect($url, $message = '', $type = 'info') {
-    if (!empty($message)) {
-        $_SESSION['flash_message'] = $message;
-        $_SESSION['flash_type'] = $type;
+function redirect($url, $message = '', $type = 'success') {
+    if ($message !== '') {
+        set_flash($message, $type);
     }
+
     header("Location: $url");
     exit();
 }

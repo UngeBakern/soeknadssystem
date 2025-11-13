@@ -7,8 +7,9 @@
 require_once __DIR__ . '/config.php';
 
 // Last inn hjelpefunksjoner 
-require_once __DIR__ . '/validation_functions.php';
+require_once __DIR__ . '/../includes/validation_functions.php';
 require_once __DIR__ . '/../includes/auth_functions.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 // Enkle includes for alle klasser
 require_once __DIR__ . '/../classes/Database.php';

@@ -1,24 +1,30 @@
 <?php
 require_once '../includes/autoload.php';
-require_once '../includes/header.php';
 
 /*
- * 
- *
- *
+ * Dashboard for arbeidsgiver
  */
 
-// Midlertidig: Kommentert ut autentisering for testing
-if (!is_logged_in() || !has_role('employer')) {
-    redirect('../auth/login.php', 'Du må logge inn som arbeidsgiver for å se denne siden.', 'error');
+// Autentisering og tilgangskontroll
+if (!is_logged_in()) {
+    redirect('../auth/login.php', 'Du må logge inn som arbeidsgiver for å se denne siden.', 'danger');
 }
 
-// Hent brukerdata (mock data for testing)
+if (!has_role('employer')) {
+    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan bruke dette dashboardet.', 'danger');
+}
+
+// Hent brukerdata 
 $user_name = $_SESSION['user_name'] ?? 'Demo Arbeidsgiver';
 
-// Hent jobber opprettet av denne arbeidsgiveren (mock data for nå)
-$job = new Job();
-$my_jobs = $job->getAll(); // I en ekte app ville vi filtrert på employer_id
+// Hent jobber opprettet av arbeidsgiveren man er innlogget som
+$my_jobs = Job::getAll();
+
+// Sett sidevariabler 
+$page_title = 'Dashboard - Arbeidsgiver';
+$body_class = 'bg-light';
+
+require_once '../includes/header.php';
 ?>
 
     <!-- Page Header -->
@@ -29,6 +35,8 @@ $my_jobs = $job->getAll(); // I en ekte app ville vi filtrert på employer_id
                     <h1 class="h2 mb-2">Velkommen, <?php echo htmlspecialchars($user_name); ?>!</h1>
                     <p class="text-muted">Administrer dine stillingsannonser og søknader</p>
                 </div>
+
+                <?php render_flash_messages(); ?>
             </div>
         </div>
     </div>

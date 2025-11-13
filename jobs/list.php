@@ -1,12 +1,9 @@
 <?php
 require_once '../includes/autoload.php';
-include_once '../includes/header.php';
+
 
 /*
- * 
- * 
- * 
- *
+ * Liste over ledige stillinger
  */
 
 // Hent alle stillinger
@@ -16,8 +13,9 @@ $jobs = Job::getAll();
 $page_title = 'Ledige Stillinger';
 $body_class = 'bg-light';
 
-
+include_once '../includes/header.php';
 ?>
+
 
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -31,9 +29,9 @@ $body_class = 'bg-light';
             </div>
         </div>
     </div>
-
     <!-- Job Listings -->
     <div class="container pb-5">
+         <?php render_flash_messages(); ?>
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="row">
@@ -45,7 +43,7 @@ $body_class = 'bg-light';
                                 <div class="card-header bg-white border-0 p-4 text-center">
                                     <div class="organization-logo mb-3">
                                         <div class="d-inline-flex align-items-center justify-content-center organization-logo-size">
-                                            <img src="../uialogo.jpeg" 
+                                            <img src="../assets/images/uialogo.jpeg" 
                                                  alt="<?php echo htmlspecialchars($job['employer_name'] ?? 'Logo'); ?>" 
                                                  class="img-fluid">
                                         </div>
