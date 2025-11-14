@@ -6,13 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk innlogging og rolle 
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må logge inn som søker.', 'danger');
-}
-
-if (!has_role('applicant')) {
-    redirect('../dashboard/employer.php', 'Kun søkere kan bruke dette dashboardet.', 'danger');
-}
+auth_check(['applicant']);
 
 // Hent brukerinfo 
 $user_name = $_SESSION['user_name'] ?? 'Bruker';

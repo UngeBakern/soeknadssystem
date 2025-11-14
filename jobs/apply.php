@@ -6,14 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk innlogging
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må logge inn for å søke på stillinger', 'danger');
-}
-
-// Sjekk rolle
-if (!has_role('applicant')) {
-    redirect('list.php', 'Kun søkere kan søke på stillinger', 'danger');
-}
+auth_check(['applicant']);
 
 // Hent stilling
 $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -33,7 +26,7 @@ if ($job['status'] !== 'active') {
 }
 
 // Sjekk om søknadsfrist har passert
-if if (!empty($job['deadline']) && strtotime($job['deadline']) < time()) {
+if (!empty($job['deadline']) && strtotime($job['deadline']) < time()) {
     redirect('view.php?id=' . $job_id, 'Søknadsfristen for denne stillingen har passert', 'danger');
 }
 
@@ -80,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 $page_title = 'Søk på stilling';
-$body_class = 'bg-light'
+$body_class = 'bg-light';
 include_once '../includes/header.php';
 ?>
 
@@ -180,13 +173,6 @@ include_once '../includes/header.php';
                 </div>
                 
                 <div class="card-body p-4">
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <?php echo htmlspecialchars($error); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
                     
                     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                         

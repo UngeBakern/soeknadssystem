@@ -1,40 +1,55 @@
 <?php
 require_once '../includes/autoload.php';
 
+/*
+ * Logg inn side
+ */
 
-// Redirect if already logged in
+// Redirect hvis logget inn 
 if (is_logged_in()) {
-    $redirect_url = has_role('employer') ? '../dashboard/employer.php' : '../dashboard/applicant.php';
-    header('Location: ' . $redirect_url);
-    exit;
+    $redirect_url = has_role('employer') 
+    ? '../dashboard/employer.php' 
+    : '../dashboard/applicant.php';
+    
+    redirect($redirect_url, 'Du er allerede logget inn.', 'info');
 }
 
-$error = '';
+$email = '';
 
 
-if ($_POST) {
-    $email = sanitize_input($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email      = sanitize_input($_POST['email'] ?? '');
+    $password   = $_POST['password'] ?? '';
     
-    if (empty($email) || empty($password)) {
-        $error = 'Både e-post og passord må fylles ut';
+    if (!validate_required($email) || !validate_required($password)) {
+
+        show_error('Både e-post og passord må fylles ut');
+
     } else {
+
         $user = get_user_by_email($email);
 
         if ($user && verify_password($password, $user['password_hash'])) {
-            // Login successful
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_type'] = $user['role'];
-            $_SESSION['user_name'] = $user['name'];
+            session_regenerate_id(true);
 
-            $redirect_url = $user['role'] === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
+            // Hvis Login OK - Sett session verdier
+            $_SESSION['user_id']    = $user['id'];
+            $_SESSION['role']       = $user['role'];
+            $_SESSION['user_name']  = $user['name'];
+
+            $redirect_url = ($user['role'] === 'employer') 
+            ? '../dashboard/employer.php' 
+            : '../dashboard/applicant.php';
+
             redirect($redirect_url, 'Velkommen tilbake!', 'success');
         } else {
 
-            $error = 'Ugyldig e-post eller passord';
+            show_error('Ugyldig e-post eller passord');
         }
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -55,22 +70,17 @@ if ($_POST) {
                         <div class="text-center mb-4">
                             <h1 class="h3 mb-3 fw-normal">Logg inn</h1>
                             <p class="text-muted">Velkommen tilbake til <?php echo APP_NAME; ?></p>
+                            <?php render_flash_messages(); ?>
                         </div>
 
-                        <?php if (!empty($error)): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo htmlspecialchars($error); ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <form method="POST" action="login.php">
+                        <form method="POST" action="login.php" novalidate>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-postadresse</label>
                                 <input type="email" 
                                        class="form-control" 
                                        id="email" 
                                        name="email" 
-                                       value="<?php echo htmlspecialchars($email ?? ''); ?>"
+                                       value="<?php echo htmlspecialchars($email); ?>"
                                        required>
                                 <div class="invalid-feedback">
                                     Vennligst oppgi en gyldig e-postadresse.

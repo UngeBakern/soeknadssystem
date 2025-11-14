@@ -6,13 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk at bruker er innlogget og er arbeidsgiver 
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være logget inn for å opprette en stilling.', 'danger');
-}
-
-if (!has_role('employer') && !has_role('admin')) {
-    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan opprette stillinger.', 'danger');
-}
+auth_check(['employer', 'admin']);
 
 // Håndter POST-request  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -6,13 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Autentisering og tilgangskontroll
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må logge inn som arbeidsgiver for å se denne siden.', 'danger');
-}
-
-if (!has_role('employer')) {
-    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan bruke dette dashboardet.', 'danger');
-}
+auth_check(['employer', 'admin']);
 
 // Hent brukerdata 
 $user_name = $_SESSION['user_name'] ?? 'Demo Arbeidsgiver';

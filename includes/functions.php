@@ -52,7 +52,7 @@ function render_flash_messages() {
 
     foreach ($flash_messages as $flash) {
 
-        $type = htmlspecialchars($flash['type'] ?? 'danger');
+        $type   = htmlspecialchars($flash['type'] ?? 'danger');
         $message = htmlspecialchars($flash['message'] ?? '');
 
         if ($message === '') {

@@ -6,13 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk at bruker er innlogget
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være innlogget for å redigere stillinger.', 'danger');
-}
-
-if (!has_role('employer') && !has_role('admin')) {
-    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan redigere stillinger.', 'danger');
-}
+auth_check(['employer', 'admin']);
 
 // Hent jobb-ID fra URL
 $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -122,7 +116,7 @@ require_once '../includes/header.php';
 
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <form method="POST" action="">
+                    <form method="POST" action="" novalidate>
                         <!-- Title -->
                         <div class="mb-3">
                             <label for="title" class="form-label">Stillingstittel *</label>
