@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : '../dashboard/applicant.php';
 
             redirect($redirect_url, 'Velkommen tilbake!', 'success');
+            
         } else {
 
             show_error('Ugyldig e-post eller passord');
