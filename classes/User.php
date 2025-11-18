@@ -2,8 +2,7 @@
 /**
  * User Class - Enkel brukerklasse
  */
-class User 
-{
+class User {
     /**
      * Finn bruker basert på e-post
      */
@@ -87,11 +86,47 @@ class User
             return false;
         }
     }
-    
+
     /**
-     * Slett bruker 
+     * Oppdater brukerinfo
      */
-    public static function delete($id) 
+    public static function update($id, $data)
+    {
+        $pdo = Database::connect();
+
+        try {
+
+            $stmt = $pdo->prepare("
+            UPDATE users
+            SET 
+                name  = :name, 
+                email = :email, 
+                phone = :phone, 
+                birthdate = :birthdate, 
+                address = :address
+            WHERE id = :id
+            ");
+
+            $result = $stmt->execute([
+                'name'      => $data['name']        ?? '',
+                'email'     => $data['email']       ?? '',
+                'phone'     => $data['phone']       ?? '',
+                'birthdate' => $data['birthdate']   ?? '',
+                'address'   => $data['address']     ?? '',
+                'id'        => $id
+            ]);
+
+            return $result;
+
+        } catch (PDOException $e) {
+            return false; 
+        }
+    }
+
+    /**
+     * Slett bruker
+     */
+    public static function delete($id)
     {
         $pdo = Database::connect();
 

@@ -1,57 +1,45 @@
 <?php
 require_once '../includes/autoload.php';
 
-
 /*
- * 
- * 
- * 
- *
+ * Rediger en eksisterende stilling
  */
 
 // Sjekk at bruker er innlogget
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være innlogget for å redigere stillinger.', 'error');
-}
-
-// Sjekk at bruker er arbeidsgiver eller admin
-if (!has_role('employer') && !has_role('admin')) {
-    redirect('../dashboard/applicant.php', 'Kun arbeidsgivere kan redigere stillinger.', 'error');
-}
-
-$error = '';
-$success = '';
+auth_check(['employer', 'admin']);
 
 // Hent jobb-ID fra URL
 $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$job_id) {
-    redirect('list.php', 'Ingen stilling valgt.', 'error');
+    redirect('list.php', 'Ingen stilling valgt.', 'danger');
 }
 
 // Hent stillingen fra database
 $job = Job::findById($job_id);
 
 if (!$job) {
-    redirect('list.php', 'Stillingen finnes ikke.', 'error');
+    redirect('list.php', 'Stillingen finnes ikke.', 'danger');
 }
 
 // Sjekk at bruker eier stillingen (eller er admin)
 if ($job['employer_id'] != $_SESSION['user_id'] && !has_role('admin')) {
-    redirect('view.php?id=' . $job_id, 'Du har ikke tilgang til å redigere denne stillingen.', 'error');
+    redirect('view.php?id=' . $job_id, 'Du har ikke tilgang til å redigere denne stillingen.', 'danger');
 }
 
 // HÅNDTER POST-REQUEST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = sanitize_input($_POST['title'] ?? '');
-    $company = sanitize_input($_POST['company'] ?? '');
-    $location = sanitize_input($_POST['location'] ?? '');
-    $job_type = sanitize_input($_POST['job_type'] ?? '');
-    $description = sanitize_input($_POST['description'] ?? '');
-    $requirements = sanitize_input($_POST['requirements'] ?? '');
-    $salary = sanitize_input($_POST['salary'] ?? '');
-    $deadline = sanitize_input($_POST['deadline'] ?? '');
-    $status = sanitize_input($_POST['status'] ?? 'active');
+    $title          = sanitize_input($_POST['title']            ?? '');
+    $company        = sanitize_input($_POST['company']          ?? '');
+    $location       = sanitize_input($_POST['location']         ?? '');
+    $job_type       = sanitize_input($_POST['job_type']         ?? '');
+    $description    = sanitize_input($_POST['description']      ?? '');
+    $requirements   = sanitize_input($_POST['requirements']     ?? '');
+    $salary         = sanitize_input($_POST['salary']           ?? '');
+    $deadline       = sanitize_input($_POST['deadline']         ?? '');
+    $status         = sanitize_input($_POST['status']           ?? 'active');
+    $subject        = sanitize_input($_POST['subject']          ?? '');
+    $education_level= sanitize_input($_POST['education_level']  ?? '');
 
     // Validering
     if (!validate_required($title) || 
@@ -60,38 +48,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         !validate_required($description) || 
         !validate_required($requirements) || 
         !validate_required($deadline)) {
-        $error = 'Vennligst fyll ut alle obligatoriske felt.';
+
+        show_error('Vennligst fyll ut alle obligatoriske felt.');
+
     } elseif (strlen($description) < 50) {
-        $error = 'Stillingsbeskrivelsen må være minst 50 tegn.';
+
+        show_error('Stillingsbeskrivelsen må være minst 50 tegn.');
+
     } elseif (!empty($deadline) && strtotime($deadline) < time()) {
-        $error = 'Søknadsfristen må være en fremtidig dato.';
+
+        show_error('Søknadsfristen må være en fremtidig dato.');
+
     } else {
-        // Oppdater stilling
+        // Ingen feil, oppdater stilling
         $updated_job = [
-            'title' => $title,
-            'company' => $company,
-            'location' => $location,
-            'job_type' => $job_type,
-            'description' => $description,
-            'requirements' => $requirements,
-            'salary' => $salary,
-            'deadline' => $deadline,
-            'status' => $status
+            'title'          => $title,
+            'company'        => $company,
+            'location'       => $location,
+            'job_type'       => $job_type,
+            'description'    => $description,
+            'requirements'   => $requirements,
+            'salary'         => $salary,
+            'deadline'       => $deadline,
+            'status'         => $status,
+            'subject'        => $subject,
+            'education_level'=> $education_level
         ];
 
         if (Job::update($job_id, $updated_job)) {
             redirect('view.php?id=' . $job_id, 'Stillingen er oppdatert!', 'success');
         } else {
-            $error = 'Det oppstod en feil under oppdateringen. Vennligst prøv igjen.';
+            show_error('Det oppstod en feil under oppdateringen. Vennligst prøv igjen.');
         }
     }
+
+
+        $job = array_merge($job, [
+            'title'          => $title,
+            'company'        => $company,
+            'location'       => $location,
+            'job_type'       => $job_type,
+            'description'    => $description,
+            'requirements'   => $requirements,
+            'salary'         => $salary,
+            'deadline'       => $deadline,
+            'status'         => $status,
+            'subject'        => $subject,
+            'education_level'=> $education_level
+        ]);
+
 }
 
 $page_title = 'Rediger stilling';
+$body_class = 'dashboard-page';
+
 require_once '../includes/header.php';
 ?>
 
 <div class="container py-5">
+    <?php render_flash_messages(); ?>
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="mb-4">
@@ -99,17 +114,9 @@ require_once '../includes/header.php';
                 <p class="text-muted">Oppdater informasjonen for stillingen</p>
             </div>
 
-            <?php if ($error): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <?php echo htmlspecialchars($error); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <form method="POST" action="">
+                    <form method="POST" action="" novalidate>
                         <!-- Title -->
                         <div class="mb-3">
                             <label for="title" class="form-label">Stillingstittel *</label>
@@ -121,7 +128,7 @@ require_once '../includes/header.php';
                         <div class="mb-3">
                             <label for="company" class="form-label">Bedrift/Organisasjon *</label>
                             <input type="text" class="form-control" id="company" name="company" 
-                                   value="<?php echo htmlspecialchars($job['company'] ?? ''); ?>" required>
+                                   value="<?php echo htmlspecialchars($job['company'] ?? ''); ?>" readonly>
                         </div>
 
                         <!-- Location & Type -->
@@ -169,6 +176,18 @@ require_once '../includes/header.php';
                         <div class="mb-3">
                             <label for="requirements" class="form-label">Krav og kvalifikasjoner *</label>
                             <textarea class="form-control" id="requirements" name="requirements" rows="4" required><?php echo htmlspecialchars($job['requirements'] ?? ''); ?></textarea>
+                        </div>
+
+                        <!-- Subject & Education level -->
+                        <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="subject" class="form-label">Fag/område</label>
+                            <input type="text" class="form-control" id="subject" name="subject"value="<?php echo htmlspecialchars($job['subject'] ?? ''); ?>"></div>
+                            <div class="col-md-6 mb-3">
+                            <label for="education_level" class="form-label">Utdanningsnivå</label>
+                        <input type="text" class="form-control" id="education_level" name="education_level"
+                        value="<?php echo htmlspecialchars($job['education_level'] ?? ''); ?>">
+                            </div>
                         </div>
 
                         <!-- Status -->

@@ -3,33 +3,30 @@ require_once '../includes/autoload.php';
 
 
 /*
- * 
- * 
- * 
- *
+ * Vis brukerprofil
  */
 
 // Sjekk om bruker er innlogget
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være innlogget for å se profilen', 'warning');
-}
+auth_check();
 
 // Hent full brukerdata fra database
 $user_id = $_SESSION['user_id'];
+
 $user = User::findById($user_id);
 
 if (!$user) {
-    redirect('../auth/logout.php', 'Bruker ikke funnet', 'danger');
+    redirect('../auth/logout.php', 'Bruker ikke funnet. Logg inn på nytt.', 'danger');
 }
 
-// Brukervennlige variabler
-$user_name = $user['name'];
-$user_email = $user['email'];
-$user_type = $user['role'];
-$type_label = $user_type === 'employer' ? 'Arbeidsgiver' : 'Søker';
-$user_phone = $user['phone'] ?? 'Ikke oppgitt';
-$user_birthdate = $user['birthdate'] ?? 'Ikke oppgitt';
-$user_address = $user['address'] ?? 'Ikke oppgitt';
+// Beregn enkelte variabler for visning
+$type_label         =   $user['role'] === 'employer' ? 'Arbeidsgiver' : 'Søker';
+$user['phone']      =   $user['phone']      ?? 'Ikke oppgitt';
+$user['birthdate']  =   $user['birthdate']  ?? 'Ikke oppgitt';
+$user['address']    =   $user['address']    ?? 'Ikke oppgitt';
+
+//Sidevariabler 
+$page_title = 'Min profil';
+$body_class = 'bg-light';
 
 include_once '../includes/header.php';
 ?>
@@ -38,6 +35,7 @@ include_once '../includes/header.php';
 
     <!-- Page Header -->
     <div class="container py-5">
+        <?php render_flash_messages(); ?>
         <div class="row justify-content-center">
             <div class="col-lg-6 col-md-8">
                 <div class="mb-4 text-center">
@@ -50,27 +48,27 @@ include_once '../includes/header.php';
                         <ul class="list-group list-group-flush mb-4">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Navn</span>
-                                <strong><?php echo htmlspecialchars($user_name); ?></strong>
+                                <strong><?php echo htmlspecialchars($user['name']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>E-post</span>
-                                <strong><?php echo htmlspecialchars($user_email); ?></strong>
+                                <strong><?php echo htmlspecialchars($user['email']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Fødselsdato</span>
-                                <strong><?php echo htmlspecialchars($user_birthdate); ?></strong>
+                                <strong><?php echo htmlspecialchars($user['birthdate']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Telefon</span>
-                                <strong><?php echo htmlspecialchars($user_phone); ?></strong>
+                                <strong><?php echo htmlspecialchars($user['phone']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Adresse</span>
-                                <strong><?php echo htmlspecialchars($user_address); ?></strong>
+                                <strong><?php echo htmlspecialchars($user['address']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Brukertype</span>
-                                <span class="badge bg-primary"><?php echo $type_label; ?></span>
+                                <span class="badge bg-primary"><?php echo  htmlspecialchars($type_label); ?></span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Varslinger:</span>

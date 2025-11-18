@@ -5,60 +5,75 @@ require_once '../includes/autoload.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    $redirect_url = has_role('employer') ? '../dashboard/employer.php' : '../dashboard/applicant.php';
-    header('Location: ' . $redirect_url);
-    exit;
+    $redirect_url = has_role('employer') 
+    ? '../dashboard/employer.php' 
+    : '../dashboard/applicant.php';
+    redirect($redirect_url, 'Du er allerede logget inn.', 'info');
 }
 
-$error = '';
-$success = '';
-$user_type = $_GET['type'] ?? 'applicant';
+$role = $_GET['type'] ?? 'applicant';
 
 // Behold verdier ved feil
 $name = '';
 $email = '';
 $phone = '';
 
-if ($_POST) {
-    $name = sanitize_input($_POST['name'] ?? '');
-    $email = sanitize_input($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    $user_type = sanitize_input($_POST['user_type'] ?? 'applicant');
-    $phone = sanitize_input($_POST['phone'] ?? '');
-    
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name             = sanitize_input($_POST['name']      ?? '');
+    $email            = sanitize_input($_POST['email']     ?? '');
+    $password         = $_POST['password']                 ?? '';
+    $confirm_password = $_POST['confirm_password']         ?? '';
+    $role             = sanitize_input($_POST['role'] ?? 'applicant');
+    $phone            = sanitize_input($_POST['phone']     ?? '');
+
     // Validation
-    if (empty($name) || empty($email) || empty($password)) {
-        $error = 'Navn, e-post og passord må fylles ut';
+    if (!validate_required($name) || !validate_required($email) || !validate_required($password)) {
+
+        show_error('Navn, e-post og passord må fylles ut');
+        
     } elseif (!Validator::validateEmail($email)) {
-        $error = 'Ugyldig e-postadresse';
+
+        show_error('Ugyldig e-postadresse');
+
     } elseif (strlen($password) < 6) {
-        $error = 'Passord må være minst 6 tegn';
+
+        show_error('Passord må være minst 6 tegn');
+
     } elseif ($password !== $confirm_password) {
-        $error = 'Passordene stemmer ikke overens';
+
+        show_error('Passordene stemmer ikke overens.');
+
     } elseif (User::findByEmail($email)) {
-        $error = 'E-postadressen er allerede registrert';
+
+        show_error('E-postadressen er allerede registrert.');
+
     } else {
-        // Opprett ny bruker med User-klassen
+
+        // Opprett ny bruker 
         $user_id = User::create([
-            'name' => $name,
-            'email' => $email,
+            'name'          => $name,
+            'email'         => $email,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => $user_type,
-            'phone' => $phone
+            'role'          => $role,
+            'phone'         => $phone
         ]);
 
         if ($user_id) {
-            // Logger inn bruker automatisk
-            $_SESSION['user_id'] = $user_id;
-            $_SESSION['user_type'] = $user_type;
+
+            $_SESSION['user_id']   = $user_id;
+            $_SESSION['role']      = $role;
             $_SESSION['user_name'] = $name;
             
             // Redirect til dashboard
-            $redirect_url = $user_type === 'employer' ? '../dashboard/employer.php' : '../dashboard/applicant.php';
+            $redirect_url = $role === 'employer' 
+            ? '../dashboard/employer.php' 
+            : '../dashboard/applicant.php';
+
             redirect($redirect_url, 'Velkommen! Din konto er opprettet.', 'success');
+
         } else { 
-            $error = 'Noe gikk galt ved registrering. Prøv igjen.';
+
+            show_error('Noe gikk galt ved registrering. Prøv igjen.');
         }
     }
 }
@@ -84,18 +99,7 @@ if ($_POST) {
                             <p class="text-muted">Opprett din konto hos <?php echo APP_NAME; ?></p>
                         </div>
 
-                        <?php if (!empty($error)): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo htmlspecialchars($error); ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($success)): ?>
-                            <div class="alert alert-success" role="alert">
-                                <?php echo htmlspecialchars($success); ?>
-                                <a href="login.php" class="alert-link">Klikk her for å logge inn</a>
-                            </div>
-                        <?php endif; ?>
+                        <?php render_flash_messages(); ?>
 
                         <form method="POST" action="">
                             <div class="mb-3">
@@ -125,12 +129,12 @@ if ($_POST) {
                             </div>
 
                             <div class="mb-3">
-                                <label for="user_type" class="form-label">Jeg er en</label>
-                                <select class="form-select" id="user_type" name="user_type" required>
-                                    <option value="applicant" <?php echo $user_type === 'applicant' ? 'selected' : ''; ?>>
+                                <label for="role" class="form-label">Jeg er en</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="applicant" <?php echo $role === 'applicant' ? 'selected' : ''; ?>>
                                         Jobbsøker (Student/Hjelpelærer)
                                     </option>
-                                    <option value="employer" <?php echo $user_type === 'employer' ? 'selected' : ''; ?>>
+                                    <option value="employer" <?php echo $role === 'employer' ? 'selected' : ''; ?>>
                                         Arbeidsgiver (Skole/Institusjon)
                                     </option>
                                 </select>

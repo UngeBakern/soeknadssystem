@@ -2,8 +2,7 @@
 /**
  * Filopplastingsklasse - Håndterer dokumentopplastinger
  */
-class Upload
-    {
+class Upload {
     
     /** 
      * Last opp dokument for bruker 

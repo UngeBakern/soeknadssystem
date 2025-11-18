@@ -9,9 +9,9 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk om bruker er innlogget
-if (!is_logged_in()) {
-    redirect('../auth/login.php', 'Du må være innlogget for å laste opp dokumenter.', 'danger');
-}
+auth_check(['applicant']);
+
+$user_id = $_SESSION['user_id'];
 
 // Håndter filopplasting
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
@@ -20,11 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
    
         $result = Upload::uploadDocument(
             $_FILES['document'],
-            $_SESSION['user_id'],
+            $user_id,
             $_POST['document_type'] ?? 'other'
         );
-
-        // Bruk redirect() med flash message
+    
         if ($result['success']) {
             redirect('upload.php', $result['message'], 'success');
         } else {
@@ -38,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
 // Håndter sletting 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+    
     $document_id = filter_input(INPUT_POST, 'document_id', FILTER_VALIDATE_INT);
 
     if ($document_id) {
-        $result = Upload::deleteDocument($document_id, $_SESSION['user_id']);
-        
-        // Bruk redirect() med flash message
+        $result = Upload::deleteDocument($document_id, $user_id);
+
         if ($result['success']) {
             redirect('upload.php', $result['message'], 'success');
         } else {
@@ -54,22 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
     redirect('upload.php', 'Ugyldig dokument-ID.', 'danger');
 }
 
-// Vis flash messages
-$error = '';
-$success = '';
-
-if (isset($_SESSION['flash_message'])) {
-    if ($_SESSION['flash_type'] === 'success') {
-        $success = $_SESSION['flash_message'];
-    } else {
-        $error = $_SESSION['flash_message'];
-    }
-    
-    unset($_SESSION['flash_message'], $_SESSION['flash_type']);
-}
-
 // Hent brukerens dokumenter
-$documents = Upload::getDocuments($_SESSION['user_id']);
+$documents = Upload::getDocuments($user_id);
 
 // Sett sidevariabler
 $page_title = 'Last opp dokumenter';
@@ -79,6 +64,7 @@ include_once '../includes/header.php';
 ?>
 
 <div class="container py-5">
+    <?php render_flash_messages(); ?>
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             <div class="card border-0 shadow-sm">
@@ -90,20 +76,6 @@ include_once '../includes/header.php';
                             Her kan du laste opp relevante dokumenter, som CV, vitnemål eller attester.
                         </p>
                     </div>
-
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?php echo htmlspecialchars($error); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($success)): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <?php echo htmlspecialchars($success); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
 
                     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                         

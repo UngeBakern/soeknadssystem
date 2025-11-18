@@ -2,8 +2,7 @@
 /**
  * Validator Class - Enkel valideringsklasse
  */
-class Validator 
-{
+class Validator {
     /**
      * Valider e-post format
      */
