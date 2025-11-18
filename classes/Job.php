@@ -16,7 +16,7 @@ class Job {
             SELECT jobs.*, users.name as employer_name 
             FROM jobs 
             LEFT JOIN users ON jobs.employer_id = users.id
-            WHERE (jobs.status IN ('active', 'inactive') OR jobs.status IS NULL)
+            WHERE COALESCE(jobs.status, 'active') = 'active'
             ORDER BY jobs.created_at DESC
             ");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -157,16 +157,17 @@ class Job {
     /**
      * Hent stillinger for en arbeidsgiver
      */
-    public static function getByEmployerId($employerId)
-    {
+    public static function getByEmployerId($employerId) {
         $pdo = Database::connect();
 
         try {
             $stmt = $pdo->prepare("
-            SELECT * FROM jobs
-            WHERE employer_id = ?
-            AND COALESCE(status, 'active') != 'deleted'
-            ORDER BY created_at DESC
+            SELECT jobs.*, users.name as employer_name
+            FROM jobs
+            LEFT JOIN users ON jobs.employer_id = users.id
+            WHERE jobs.employer_id = ?
+            AND COALESCE(jobs.status, 'active') = 'active'
+            ORDER BY jobs.created_at DESC
             ");
             $stmt->execute([$employerId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -175,5 +176,29 @@ class Job {
         }
     }
 
+    /**
+     * Hent inaktive stillinger for en arbeidsgiver 
+     */
+    public static function getInactiveByEmployerId($employer_id) {
 
-}
+        $pdo = Database::connect(); 
+
+        try {
+            $stmt = $pdo->prepare("
+            SELECT jobs.*, users.name as employer_name
+            FROM jobs 
+            LEFT JOIN users ON jobs.employer_id = users.id
+            WHERE jobs.employer_id = ?
+            AND jobs.status = 'inactive'
+            ORDER BY jobs.created_at DESC
+            ");
+            $stmt->execute([$employer_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Feil ved henting av inaktive stillinger: " . $e->getMessage());
+            return [];
+        }
+    }
+    }
+
+

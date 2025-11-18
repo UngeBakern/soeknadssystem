@@ -8,6 +8,37 @@ require_once '../includes/autoload.php';
 // Sjekk innlogging og rolle 
 auth_check(['applicant']);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'])) {
+
+    $application_id = filter_input(INPUT_POST, 'application_id', FILTER_VALIDATE_INT);
+
+    if (!$application_id) {
+        redirect('applicant.php', 'Ugyldig søknads-ID.', 'danger'); 
+    }
+
+    $application = Application::findById($application_id);
+
+    if (!$application) {
+        redirect('applicant.php', 'Søknaden ble ikke funnet.', 'danger'); 
+    }
+
+    if ($application['applicant_id'] != ($_SESSION['user_id'] ?? 0)) {
+        redirect('applicant.php', 'Du har ikke tillatelse til å trekke tilbake denne søknaden.', 'danger'); 
+    }
+
+    if ($application['status'] === 'Tilbud' || $application['status'] === 'Avslått') {
+        redirect('applicant.php', 'Du kan ikke trekke tilbake en søknad som allerede er behandlet.', 'danger');
+    }
+
+    if (Application::delete($application_id)) {
+        redirect('applicant.php', 'Søknaden ble trukket tilbake.', 'success');
+
+    } else {    
+        redirect('applicant.php', 'Noe gikk galt. Prøv igjen.', 'danger');
+    }
+
+}
+
 // Hent brukerinfo 
 $user_name = $_SESSION['user_name'] ?? 'Bruker';
 $user_id = $_SESSION['user_id'];
@@ -22,13 +53,31 @@ $pending_applications = array_filter($my_applications, function($app) {
     return $app['status'] === 'Vurderes';
 });
 
+$accepted_applications = array_filter($my_applications, function($app) {
+    return $app['status'] === 'Akseptert';
+});
+
+$rejected_applications = array_filter($my_applications, function($app) {
+    return $app['status'] === 'Avslått';
+});
+
 // Beregn statistikk 
 $stats = [
     'available_jobs'        => count($all_jobs),
     'my_applications'       => count($my_applications), 
     'pending'               => count($pending_applications),
-    'favorites'             => 0
+    'accepted'              => count($accepted_applications),
+    'rejected'              => count($rejected_applications),
+    'favorites'             => '0' // Placeholder for favoritter
 ];
+
+$status_badges = [
+    'Mottatt'  => 'info', 
+    'Vurderes' => 'warning',
+    'Tilbud'   => 'success',
+    'Avslått'  => 'danger'
+];
+
 
 // Sett sidevariabler
 $page_title = 'Dashboard - Søker';
@@ -36,8 +85,9 @@ $body_class = 'bg-light';
 
 require_once '../includes/header.php';
 
+
 ?>
-    <!-- Page Header -->
+       <!-- Page Header -->
     <div class="container py-5">
         <div class="row">
             <div class="col-12">
@@ -90,13 +140,13 @@ require_once '../includes/header.php';
                         <div class="row text-center">
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 bg-primary bg-opacity-10 rounded">
-                                    <h3 class="text-primary mb-1"><?php echo $stats['available_jobs']?></h3>
+                                    <h3 class="text-primary mb-1"><?php echo $stats['available_jobs']; ?></h3>
                                     <small class="text-muted">Tilgjengelige stillinger</small>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 bg-success bg-opacity-10 rounded">
-                                    <h3 class="text-success mb-1"><?php echo count($my_applications); ?></h3>
+                                    <h3 class="text-success mb-1"><?php echo $stats['my_applications']; ?></h3>
                                     <small class="text-muted">Mine søknader</small>
                                 </div>
                             </div>
@@ -129,20 +179,80 @@ require_once '../includes/header.php';
                         </h5>
 
                         <?php if (!empty($my_applications)): ?>
-                            <div class="list-group list-group-flush">
-                                <?php foreach ($my_applications as $application): ?>
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1"><?php echo htmlspecialchars($application['job_title']); ?></h6>
-                                            <p class="mb-1 text-muted small"><?php echo htmlspecialchars($application['employer']); ?></p>
-                                            <small class="text-muted">Søkt <?php echo date('d.m.Y', strtotime($application['applied_at'])); ?></small>
+                            <?php 
+                            $recent_applications = array_slice($my_applications, 0, 5);
+                            foreach ($recent_applications as $application): 
+                                $badge_color = $status_badges[$application['status']] ?? 'secondary';
+                            ?>
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        <div class="bg-primary bg-opacity-10 rounded p-2">
+                                            <img src="../uialogo.jpeg" 
+                                                 alt="Logo" 
+                                                 class="img-fluid" 
+                                                 style="width: 30px; height: 30px; object-fit: contain;">
                                         </div>
-                                        <span class="badge bg-warning">Under vurdering</span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0">
+                                                <a href="../jobs/view.php?id=<?php echo $application['job_id']; ?>" 
+                                                   class="text-decoration-none text-dark">
+                                                    <?php echo htmlspecialchars($application['job_title']); ?>
+                                                </a>
+                                            </h6>
+                                            <span class="badge bg-<?php echo $badge_color; ?> ms-2">
+                                                <?php echo htmlspecialchars($application['status']); ?>
+                                            </span>
+                                        </div>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fas fa-building me-1"></i>
+                                            <?php echo htmlspecialchars($application['employer_name']); ?>
+                                        </p>
+                                        <?php if (!empty($application['location'])): ?>
+                                            <p class="text-muted small mb-2">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                <?php echo htmlspecialchars($application['location']); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <small class="text-muted d-block mb-2">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Søkt <?php echo date('d.m.Y', strtotime($application['created_at'])); ?>
+                                        </small>
+                                        <div class="d-flex gap-2">
+                                            <a href="../applications/view.php?id=<?php echo $application['id']; ?>" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye me-1"></i>
+                                                Se søknad
+                                            </a>
+                                            
+                                            <?php if ($application['status'] !== 'Tilbud' && $application['status'] !== 'Avslått'): ?>
+                                                <form method="POST" style="display: inline;">
+                                                    <input type="hidden" name="withdraw_application" value="1">
+                                                    <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
+                                                    <button type="submit" 
+                                                            class="btn btn-outline-danger btn-sm"
+                                                            onclick="return confirm('Er du sikker på at du vil trekke denne søknaden? Dette kan ikke angres.');">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Trekk søknad
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
-                                <?php endforeach; ?>
                             </div>
+                            <?php endforeach; ?>
+                            
+                            <?php if (count($my_applications) > 5): ?>
+                                <div class="text-center mt-3">
+                                    <a href="../applications/my_applications.php" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-list me-1"></i>
+                                        Se alle mine søknader (<?php echo count($my_applications); ?>)
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         <?php else: ?>
                             <div class="text-center py-4">
                                 <i class="fas fa-paper-plane fa-2x text-muted mb-3"></i>
@@ -181,7 +291,7 @@ require_once '../includes/header.php';
                                     </div>
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1"><?php echo htmlspecialchars($job['title']); ?></h6>
-                                        <p class="text-muted small mb-2"><?php echo htmlspecialchars($job['employer_name']); ?></p>
+                                        <p class="text-muted small mb-2"><?php echo htmlspecialchars($job['company']); ?></p>
                                         <p class="text-muted small mb-2">
                                             <i class="fas fa-map-marker-alt me-1"></i>
                                             <?php echo htmlspecialchars($job['location']); ?>

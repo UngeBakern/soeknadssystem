@@ -7,7 +7,7 @@ require_once '../includes/autoload.php';
  */
 
 // Hent alle stillinger
-$jobs = Job::getAll();
+$jobs = Job::getAll(['status' => 'active']);
 
 // Sett sidevariabler
 $page_title = 'Ledige Stillinger';

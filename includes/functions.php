@@ -72,4 +72,38 @@ function render_flash_messages() {
 function format_date($date) {
     return date('d.m.Y H:i', strtotime($date));
 }
-?>
+
+
+/**
+ * Jobb relaterte hjelpefunksjoner
+ */
+
+// Denne funksjonen returnerer en etikett for jobbstatus, brukes på jobblisten.
+function get_job_status_label($status) {
+
+    $labels = [
+        'active' => [
+            'label' => 'Aktiv',
+            'class' => 'badge bg-success',
+    ],
+        'inactive' => [
+            'label' => 'Inaktiv',
+            'class' => 'badge bg-secondary',
+    ],
+        'deleted' => [
+            'label' => 'Lukket',
+            'class' => 'badge bg-danger',
+        ],
+    ];
+    return $labels[$status] ?? $labels['active'];
+
+}
+
+function getStatusBadge($status) {
+    $badges = [
+        'active' => '<span class="badge bg-success">Aktiv</span>',
+        'inactive' => '<span class="badge bg-secondary">Inaktiv</span>',
+        'deleted' => '<span class="badge bg-danger">Lukket</span>',
+    ];
+    return $badges[$status] ?? '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>';
+}

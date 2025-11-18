@@ -361,4 +361,87 @@ footer a:hover {
         height: 100px !important;
         font-size: 18px !important;
     }
+
+    .job-table {
+    table-layout: fixed;   /* gjør at width på kolonnene respekteres */
+    width: 100%;
 }
+
+/* Kolonner: 1 = Stilling, 2 = Lokasjon, 3 = Opprettet/Arkivert, 4 = Status, 5 = Søknader, 6 = Handlinger */
+
+.job-table th:nth-child(1),
+.job-table td:nth-child(1) {
+    width: 35%;
+}
+
+.job-table th:nth-child(2),
+.job-table td:nth-child(2) {
+    width: 20%;
+}
+
+.job-table th:nth-child(3),
+.job-table td:nth-child(3) {
+    width: 15%;
+}
+
+.job-table th:nth-child(4),
+.job-table td:nth-child(4) {
+    width: 10%;
+}
+
+.job-table th:nth-child(5),
+.job-table td:nth-child(5) {
+    width: 10%;
+}
+
+.job-table th:nth-child(6),
+.job-table td:nth-child(6) {
+    width: 10%;
+}
+}
+
+.job-table {
+    table-layout: fixed;   /* viktig: ikke auto-layout */
+    width: 100%;
+}
+
+/* Samme kolonne-oppsett i begge tabeller */
+.job-table .col-title {
+    width: 35%;
+}
+
+.job-table .col-location {
+    width: 20%;
+}
+
+.job-table .col-date {
+    width: 15%;
+}
+
+.job-table .col-status {
+    width: 10%;
+}
+
+.job-table .col-applications {
+    width: 10%;
+}
+
+.job-table .col-actions {
+    width: 10%;
+    white-space: nowrap; /* så ikke knappene brytes nedover */
+}
+
+.job-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;      /* avstanden mellom knappene */
+}
+
+.job-actions form {
+    display: inline; 
+}
+
+.job-table .col-actions {
+    text-align: right;
+}
+/* ============================================================================

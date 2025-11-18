@@ -194,15 +194,10 @@ require_once '../includes/header.php';
                             </a>
                         <?php endif; ?>
 
-                        <a href="list.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-list me-2"></i>
-                            Se alle stillinger
-                        </a>
-
                         <?php if (is_logged_in() && ((has_role('employer') && $job['employer_id'] == $_SESSION['user_id']) || has_role('admin'))): ?>
                             <a href="edit.php?id=<?php echo $job['id']; ?>" class="btn btn-outline-primary">
                                 <i class="fas fa-edit me-2"></i>
-                                Rediger stilling
+                                Rediger
                             </a>
 
                             <form method="POST" style="display: inline;"
@@ -210,7 +205,7 @@ require_once '../includes/header.php';
                                 <input type="hidden" name="delete_job" value="<?php echo $job['id']; ?>">
                                 <button type="submit" class="btn btn-outline-danger">
                                     <i class="fas fa-trash me-2"></i>
-                                    Slett stilling
+                                    Slett
                                 </button>
                             </form>
                         <?php endif; ?>
