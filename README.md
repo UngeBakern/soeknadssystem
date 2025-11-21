@@ -22,6 +22,7 @@
 - **Backend**: PHP 8.x with Object-Oriented Programming
 - **Architecture**: Class-based structure with autoloading
 - **Database**: MySQL (via XAMPP) - Array-based storage initially
+- **Database**: MySQL via PDO (see `includes/config.php`) — the app connects to a MySQL database using PDO. A minimal schema is provided below.
 - **Frontend**: HTML5, CSS3, Bootstrap 5
 - **Server**: Apache (XAMPP)
 - **Session Management**: PHP Sessions
@@ -45,7 +46,7 @@ The system uses a modern object-oriented approach with the following core classe
 - **Helper functions** - Authentication and validation utilities
 
 ### Data Storage
-Currently uses PHP arrays for rapid prototyping, with planned migration to MySQL database.
+The application uses a MySQL database accessed through PDO. Update your database credentials in `includes/config.php` (DB_HOST, DB_USER, DB_PASS, DB_NAME) before running the app. A minimal schema to create the required tables is included in the "Database setup" section below.
 
 ## 🚀 Complete Setup Guide
 
@@ -88,76 +89,30 @@ cd soeknadssystem
 
 ### Step 5: Test with Demo Accounts
 
-The system comes with pre-configured demo accounts for testing:
+The login page includes example demo credentials. These accounts are not automatically created unless you seed the database or register them via the application. See the "Database setup" section below for how to create the database schema and seed users.
 
-#### Employer Account
-- **Email**: `employer@example.com`
-- **Password**: `password`
-- **Access**: Can create job postings and manage applications
+### Project structure (high level)
 
-#### Job Seeker Account
-- **Email**: `applicant@example.com`
-- **Password**: `password`
-- **Access**: Can browse jobs and submit applications
-
-### Project Structure
+The repository contains the main application files and a simple class-based architecture. Key folders:
 
 ```
 soeknadssystem/
-├── index.php                       # Main homepage
-├── classes/                        # Object-Oriented Class Library
-│   ├── Auth.php                    # Authentication & authorization class
-│   ├── Database.php                # Database class
-│   ├── User.php                    # User management class
-│   ├── Job.php                     # Job management class
-│   ├── Application.php             # Application handling class
-│   └── Validator.php               # Input validation class
-├── includes/                       # Core system files
-│   ├── config.php                  # Configuration & session management
-│   ├── functions.php               # Main include file (loads everything)
-│   ├── autoload.php                # Automatic class loading
-│   ├── auth_functions.php          # Authentication helper functions
-│   └── validation_functions.php    # Input validation helpers
-├── auth/                          # Authentication system
-│   ├── login.php                  # User login page
-│   ├── register.php               # User registration (planned)
-│   └── logout.php                 # Logout functionality (planned)
-├── dashboard/                     # User dashboards
-│   ├── employer.php               # Employer dashboard (planned)
-│   └── applicant.php              # Applicant dashboard (planned)
-├── jobs/                          # Job management
-│   ├── list.php                   # Job listings (planned)
-│   ├── create.php                 # Create job posting (planned)
-│   ├── edit.php                   # Edit job posting (planned)
-│   └── view.php                   # View job details (planned)
-├── applications/                  # Application handling
-│   ├── apply.php                  # Submit application (planned)
-│   ├── manage.php                 # Manage applications (planned)
-│   └── status.php                 # Application status (planned)
-├── profile/                       # User profiles
-│   ├── view.php                   # View profile (planned)
-│   └── edit.php                   # Edit profile (planned)
-├── data/                          # Data storage (temporary arrays)
-│   ├── users.php                  # User accounts (array-based)
-│   ├── jobs.php                   # Job postings (array-based)
-│   └── applications.php           # Applications (array-based)
-├── database/                      # Database files
-│   └── schema.sql                 # Future MySQL database schema
-├── assets/                        # Static files
-│   ├── css/                       # Custom stylesheets
-│   │   └── style.css              # Main stylesheet
-│   ├── js/                        # JavaScript files
-│   │   └── main.js                # Main JavaScript
-│   └── images/                    # Image assets
-├── uploads/                       # File uploads directory
-│   └── README.md                  # Upload directory info
-├── .github/                       # GitHub configuration
-│   └── workflows/                 # CI/CD workflows
-│       └── php.yml                # Automated PHP testing
-├── .gitignore                     # Git ignore patterns
-├── LICENSE                        # MIT License
-└── README.md                      # This file
+├── index.php
+├── classes/        # Class library (Auth, Database, User, Job, Application, Validator)
+├── includes/       # Config, autoload, helpers
+├── auth/           # Login, registration, logout
+├── dashboard/      # User dashboards
+├── jobs/           # Job CRUD and listings
+├── applications/   # Application handling and status
+├── profile/        # User profile management
+├── assets/         # css/js/images
+├── uploads/        # uploaded files
+├── .github/        # CI workflows
+├── LICENSE
+└── README.md
 ```
+
+Note: The project no longer relies on local `data/` PHP arrays for storage — it connects to MySQL via PDO. There is no `database/schema.sql` file in the repo by default; see the next section for a minimal schema you can run.
 
 ## Development Phases
 
@@ -169,13 +124,14 @@ soeknadssystem/
 - [x] Responsive design with Bootstrap
 - [x] Clean file structure and organization
 
-### Phase 2: Core Functionality (In Progress)
+### Phase 2: Core Functionality
 - [x] Complete authentication system with login/logout
 - [x] Job management (create, edit, view, delete)
-- [ ] Application system with file upload handling
-- [ ] User profiles and dashboards
-- [ ] Search and filtering of jobs
-- [ ] Role-based access control
+- [x] Basic application system (submit and track applications)
+- [x] User profiles and basic dashboards
+- [ ] File upload handling for applications (partial / verify upload limits)
+- [ ] Search and advanced filtering of jobs
+- [ ] Role-based access control (review and tighten permissions)
 
 ### Phase 3: Database Integration & Finalization
 - [ ] MySQL database migration from array storage
@@ -186,6 +142,10 @@ soeknadssystem/
 ## 👥 Team
 
 This is a 2-person course project for PHP development at the University of Agder (UiA).
+
+## Database setup (minimal)
+
+Reminder: I'll add a standalone `database/schema.sql` file and an optional seed script here later. For now, please create a MySQL database and configure your credentials in `includes/config.php` (DB_HOST, DB_USER, DB_PASS, DB_NAME). When you're ready, run the schema and seed steps to create tables and demo users.
 
 ## 📋 Project Resources
 
