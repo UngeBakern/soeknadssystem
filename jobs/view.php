@@ -5,41 +5,6 @@ require_once '../includes/autoload.php';
  * Visning av jobber
  */
 
-// Håndterer sletting av jobb (POST)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_job'])) {
-
-    // Sjekk innlogging
-    if (!is_logged_in()) {
-        redirect('../auth/login.php', 'Du må være logget inn for å slette en stilling.', 'danger');
-    }
-
-    $delete_job_id = filter_input(INPUT_POST, 'delete_job', FILTER_VALIDATE_INT);
-
-    if(!$delete_job_id) {
-        redirect('list.php', 'Ugyldig jobb ID.', 'danger');
-    }
-
-    $job_to_delete = Job::findById($delete_job_id);
-
-    if(!$job_to_delete){
-        redirect('list.php', 'Jobben finnes ikke.', 'danger');
-    }
-
-    // Sjekk: Eier jobben eller er admin 
-    if ($job_to_delete['employer_id'] != $_SESSION['user_id'] && !has_role('admin')) {
-        redirect('view.php?id=' . $delete_job_id, 'Du har ikke tilgang til å slette denne jobben.', 'danger');
-    } 
-
-    // Forsøk å slette 
-    if (Job::delete($delete_job_id)) {
-
-        redirect('../dashboard/employer.php', 'Stillingen er slettet!', 'success');
-    } else {
-
-        redirect('view.php?id=' . $delete_job_id, 'Kunne ikke slette stilling.', 'danger');
-    }
-}
-
     // Hent jobb-ID fra URL (GET)
     $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
@@ -200,9 +165,10 @@ require_once '../includes/header.php';
                                 Rediger
                             </a>
 
-                            <form method="POST" style="display: inline;"
+                            <form method="POST" action="delete.php" style="display: inline;"
                                   onsubmit="return confirm('Er du sikker på at du vil slette denne stillingen?');">
-                                <input type="hidden" name="delete_job" value="<?php echo $job['id']; ?>">
+                                  <?php echo csrf_field(); ?> 
+                                <input type="hidden" name="job_id" value="<?php echo $job['id']; ?>">
                                 <button type="submit" class="btn btn-outline-danger">
                                     <i class="fas fa-trash me-2"></i>
                                     Slett

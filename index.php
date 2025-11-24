@@ -18,8 +18,8 @@ include 'includes/header.php';
                     <p class="lead text-muted mb-5">
                         Enkelt og effektivt system for å koble sammen hjelpelærere med utdanningsinstitusjoner
                     </p>
-                    
-                    <?php if (!isset($_SESSION['user_id'])): ?>
+
+                    <?php if (!Auth::isLoggedIn()): ?>
                         <div class="row justify-content-center g-3">
                             <div class="col-md-4">
                                 <a href="jobs/list.php" class="btn btn-primary btn-lg w-100">

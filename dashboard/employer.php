@@ -7,7 +7,7 @@ auth_check(['employer', 'admin']);
 
 // Hent brukerdata 
 $user_name = $_SESSION['user_name'] ?? 'Arbeidsgiver';
-$user_id = $_SESSION['user_id'] ?? null;
+$user_id = Auth::id();
 
 // Hent jobber opprettet av arbeidsgiveren man er innlogget som
 $active_jobs = Job::getByEmployerId($user_id);

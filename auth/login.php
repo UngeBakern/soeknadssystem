@@ -6,8 +6,8 @@ require_once '../includes/autoload.php';
  */
 
 // Redirect hvis logget inn 
-if (is_logged_in()) {
-    $redirect_url = has_role('employer') 
+if (Auth::isLoggedIn()) {
+    $redirect_url = Auth::hasRole('employer') 
     ? '../dashboard/employer.php' 
     : '../dashboard/applicant.php';
     
@@ -18,31 +18,35 @@ $email = '';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email      = sanitize_input($_POST['email'] ?? '');
-    $password   = $_POST['password'] ?? '';
     
-    if (!validate_required($email) || !validate_required($password)) {
+    csrf_check();
+
+    $email      = Validator::sanitize($_POST['email'] ?? '');
+    $password   = $_POST['password'] ?? '';
+
+    if (!Validator::required($email) || !Validator::required($password)) {
 
         show_error('Både e-post og passord må fylles ut');
 
+    } elseif (!Validator::validateEmail($email)) {
+
+        show_error('Ugyldig e-postadresse.');
+
     } else {
 
-        $user = get_user_by_email($email);
+        $user = Auth::attempt($email, $password);
 
-        if ($user && verify_password($password, $user['password_hash'])) {
-            session_regenerate_id(true);
+        if ($user) {
 
-            // Hvis Login OK - Sett session verdier
-            $_SESSION['user_id']    = $user['id'];
-            $_SESSION['role']       = $user['role'];
-            $_SESSION['user_name']  = $user['name'];
+            Auth::login($user);
+            csrf_regenerate();
 
             $redirect_url = ($user['role'] === 'employer') 
             ? '../dashboard/employer.php' 
             : '../dashboard/applicant.php';
 
-            redirect($redirect_url, 'Velkommen tilbake!', 'success');
-            
+            redirect($redirect_url, 'Velkommen!', 'success');
+
         } else {
 
             show_error('Ugyldig e-post eller passord');
@@ -75,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <form method="POST" action="login.php" novalidate>
+                            <?php echo csrf_field(); ?>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-postadresse</label>
                                 <input type="email" 
@@ -83,9 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        name="email" 
                                        value="<?php echo htmlspecialchars($email); ?>"
                                        required>
-                                <div class="invalid-feedback">
-                                    Vennligst oppgi en gyldig e-postadresse.
-                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -95,18 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        id="password" 
                                        name="password" 
                                        required>
-                                <div class="invalid-feedback">
-                                    Passord er påkrevd.
-                                </div>
                             </div>
-
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember">
-                                <label class="form-check-label" for="remember">
-                                    Husk meg
-                                </label>
-                            </div>
-
                             <button type="submit" class="btn btn-primary w-100 mb-3">
                                 <i class="fas fa-sign-in-alt me-2"></i>
                                 Logg inn
@@ -139,7 +130,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-   <!--- <script src="../assets/js/main.js"></script> --->
 </body>
 </html>

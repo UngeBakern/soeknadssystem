@@ -10,27 +10,28 @@ auth_check(['employer', 'admin']);
 
 // Håndter POST-request  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title          = sanitize_input($_POST['title']                ?? '');
+    csrf_check();
+    $title          = Validator::sanitize($_POST['title']                ?? '');
     $company        = $_SESSION['user_name'] ?? 'Ukjent arbeidsgiver';
-    $description    = sanitize_input($_POST['description']          ?? '');
-    $requirements   = sanitize_input($_POST['requirements']         ?? '');
-    $location       = sanitize_input($_POST['location']             ?? '');
-    $salary         = sanitize_input($_POST['salary']               ?? '');
-    $job_type       = sanitize_input($_POST['job_type']             ?? '');
-    $subject        = sanitize_input($_POST['subject']              ?? '');
-    $education_level= sanitize_input($_POST['education_level']      ?? '');
-    $deadline       = sanitize_input($_POST['deadline']             ?? '');
-    $hours_per_week = sanitize_input($_POST['hours_per_week']       ?? '');
+    $description    = Validator::sanitize($_POST['description']          ?? '');
+    $requirements   = Validator::sanitize($_POST['requirements']         ?? '');
+    $location       = Validator::sanitize($_POST['location']             ?? '');
+    $salary         = Validator::sanitize($_POST['salary']               ?? '');
+    $job_type       = Validator::sanitize($_POST['job_type']             ?? '');
+    $subject        = Validator::sanitize($_POST['subject']              ?? '');
+    $education_level= Validator::sanitize($_POST['education_level']      ?? '');
+    $deadline       = Validator::sanitize($_POST['deadline']             ?? '');
+    $hours_per_week = Validator::sanitize($_POST['hours_per_week']       ?? '');
     //TODO Lagre hours_per_week i databasen senere.
     
 
     // Validering
-    if (!validate_required($title) ||
-        !validate_required($location) ||
-        !validate_required($job_type) ||
-        !validate_required($description) ||
-        !validate_required($requirements) ||
-        !validate_required($deadline)) {
+    if (!Validator::required($title)        ||
+        !Validator::required($location)     ||
+        !Validator::required($job_type)     ||
+        !Validator::required($description)  ||
+        !Validator::required($requirements) ||
+        !Validator::required($deadline)) {
 
         show_error('Vennligst fyll ut alle obligatoriske felt.');
 
@@ -38,7 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         show_error('Stillingsbeskrivelsen må være minst 50 tegn.');
 
-    } elseif (!empty($deadline) && strtotime($deadline) < time()) {
+    } elseif (!Validator::validateDate($deadline)) {
+
+        show_error('Ugyldig datoformat for søknadsfrist.');
+
+    } elseif (strtotime($deadline) < time()) {
 
         show_error('Søknadsfristen må være en fremtidig dato.');
 
@@ -46,16 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Opprett ny jobb
         $new_job = [
-            'employer_id'    => $_SESSION['user_id'],
+            'employer_id'    => Auth::id(),
             'title'          => $title,
             'company'        => $company,
             'description'    => $description,
             'requirements'   => $requirements,
             'location'       => $location,
-            'salary'         => $salary,
+            'salary'         => $salary ?: null,
             'job_type'       => $job_type,
-            'subject'        => $subject,
-            'education_level'=> $education_level,
+            'subject'        => $subject ?: null,
+            'education_level'=> $education_level ?: null,
             'deadline'       => $deadline,
             'status'         => 'active'   
         ];
@@ -89,7 +94,8 @@ require_once '../includes/header.php';
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <form method="POST" action="">
+                        <form method="POST" action="" novalidate>
+                            <?php echo csrf_field(); ?>
                           <!-- Basic Information -->
                             <div class="row">
                                 <div class="col-md-12 mb-2">

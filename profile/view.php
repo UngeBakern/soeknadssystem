@@ -10,7 +10,7 @@ require_once '../includes/autoload.php';
 auth_check();
 
 // Hent full brukerdata fra database
-$user_id = $_SESSION['user_id'];
+$user_id = Auth::id();
 
 $user = User::findById($user_id);
 

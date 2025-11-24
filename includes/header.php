@@ -49,12 +49,14 @@
                                 Profil
                             </a>
                         </li>
-                        
                         <!-- Logg ut -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/auth/logout.php">
-                                Logg ut
-                            </a>
+                            <form method="POST" action="<?php echo BASE_URL; ?>/auth/logout.php" class="d-inline m-0">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="nav-link text-decoration-none bg-transparent border-0">
+                                    Logg ut
+                                </button>
+                            </form>
                         </li>
                     <?php else: ?>
                         <!-- Logg inn (kun for utloggede) -->

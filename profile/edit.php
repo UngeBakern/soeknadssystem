@@ -10,7 +10,7 @@ require_once '../includes/autoload.php';
 auth_check();
 
 // Hent bruker-ID fra session
-$user_id = $_SESSION['user_id'];
+$user_id = Auth::id();
 
 // Henter bruker fra databasen
 $user = User::findById($user_id);
@@ -24,28 +24,43 @@ $type_label = $user_type === 'employer' ? 'Arbeidsgiver' : 'Søker';
 
 // HÅNDTER POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name       = sanitize_input($_POST['name']       ?? '');
-    $email      = sanitize_input($_POST['email']      ?? '');
-    $birthdate  = sanitize_input($_POST['birthdate']  ?? '');
-    $phone      = sanitize_input($_POST['phone']      ?? '');
-    $address    = sanitize_input($_POST['address']    ?? '');
 
-    if (!validate_required($name) || !validate_required($email)) {
+    csrf_check(); 
+
+    $name       = Validator::sanitize($_POST['name']       ?? '');
+    $email      = Validator::sanitize($_POST['email']      ?? '');
+    $birthdate  = Validator::sanitize($_POST['birthdate']  ?? '');
+    $phone      = Validator::sanitize($_POST['phone']      ?? '');
+    $address    = Validator::sanitize($_POST['address']    ?? '');
+
+    if (!Validator::required($name) || !Validator::required($email)) {
 
         show_error('Vennligst fyll ut både navn og e-post.');
 
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif (!Validator::validateEmail($email)) {
 
         show_error('Epost-adressen er ikke gyldig.');
-    
+
+    } elseif (!empty($birthdate) && !Validator::validateDate($birthdate)) {
+
+        show_error('Fødselsdatoen er ikke gyldig.');
+
+    } elseif (!empty($phone) && !Validator::validatePhone($phone)) {
+
+        show_error('Telefonnummeret er ikke gyldig.');
+
+    } elseif (!empty($address) && !Validator::validateAddress($address)) {
+
+        show_error('Adressen er ikke gyldig.');
+
     } else {
         
         $updated_user = [
             'name'      => $name,
             'email'     => $email, 
-            'birthdate' => $birthdate, 
-            'phone'     => $phone, 
-            'address'   => $address
+            'birthdate' => $birthdate ?: null, 
+            'phone'     => $phone     ?: null,
+            'address'   => $address   ?: null
 
         ];
 
@@ -90,7 +105,8 @@ include_once '../includes/header.php';
                 </div>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <form method="post" action="">
+                        <form method="post" action="" novalidate>
+                            <?php echo csrf_field(); ?>
                             <div class="mb-3">
                                 <label for="name" class="form-label">Navn</label>
                                 <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>
@@ -101,15 +117,15 @@ include_once '../includes/header.php';
                             </div>
                             <div class="mb-3">
                                 <label for="birthdate" class="form-label">Fødselsdato</label>
-                                <input type="text" class="form-control" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($user['birthdate']); ?>">
+                                <input type="date" class="form-control" id="birthdate" name="birthdate" max="<?php echo date('Y-m-d'); ?>"   value="<?php echo htmlspecialchars($user['birthdate'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="phone" class="form-label">Telefon</label>
-                                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>">
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="900 00 000" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="address" class="form-label">Adresse</label>
-                                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address']); ?>">
+                                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Brukertype</label>

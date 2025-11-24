@@ -19,7 +19,7 @@ if (!$job) {
 }
 
 // Sjekk at arbeidsgiver eier jobben
-if (has_role('employer') && $job['employer_id'] != $_SESSION['user_id']) {
+if (has_role('employer') && $job['employer_id'] != Auth::id()) {
     redirect('../dashboard/employer.php', 'Ingen tilgang.', 'danger');
 }
 

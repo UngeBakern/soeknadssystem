@@ -11,7 +11,7 @@ require_once '../includes/autoload.php';
 // Sjekk om bruker er innlogget
 auth_check(['applicant']);
 
-$user_id = $_SESSION['user_id'];
+$user_id = Auth::id();
 
 // Håndter filopplasting
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
