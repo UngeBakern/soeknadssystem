@@ -67,6 +67,18 @@ function render_flash_messages() {
 }
 
 /**
+ * Redirect funksjon med valgfri flash melding
+ */
+function redirect($url, $message = '', $type = 'success') {
+    if ($message !== '') {
+        set_flash($message, $type);
+    }
+
+    header("Location: $url");
+    exit();
+}
+
+/**
  * Formater dato til norsk format
  */
 function format_date($date) {

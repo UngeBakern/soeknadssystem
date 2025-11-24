@@ -19,8 +19,8 @@ if (!$application) {
 }
 
 // Sikkerhet: Sjekk at bruker har tilgang
-$is_applicant = (has_role('applicant') && $application['applicant_id'] == $_SESSION['user_id']);
-$is_employer = (has_role('employer') && $application['employer_id'] == $_SESSION['user_id']);
+$is_applicant = (has_role('applicant') && $application['applicant_id'] == Auth::id());
+$is_employer = (has_role('employer') && $application['employer_id'] == Auth::id());
 
 if (!$is_applicant && !$is_employer && !has_role('admin')) {
     redirect('../dashboard/applicant.php', 'Du har ikke tilgang til denne søknaden.', 'danger');

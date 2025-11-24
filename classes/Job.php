@@ -89,7 +89,7 @@ class Job {
     }
 
     /**
-     * Oppdater jobb
+     * Oppdater jobb men sender ikke inn company fordi den ikke skal endres.
      */
     public static function update($id, $data)
     {
@@ -99,8 +99,7 @@ class Job {
 
             $stmt = $pdo->prepare("
             UPDATE jobs 
-            SET title = ?, 
-                company = ?, 
+            SET title = ?,  
                 location = ?,
                 job_type = ?, 
                 description = ?, 
@@ -108,6 +107,8 @@ class Job {
                 salary = ?, 
                 deadline = ?, 
                 status = ?,
+                subject = ?,
+                education_level =?, 
                 updated_at = NOW()
             WHERE id = ?
             ");
@@ -116,7 +117,6 @@ class Job {
 
             $result = $stmt->execute([
                 $data['title'],
-                $data['company'],
                 $data['location'],
                 $data['job_type'],
                 $data['description'],
@@ -124,6 +124,8 @@ class Job {
                 $data['salary'],
                 $data['deadline'],
                 $data['status'] ?? 'active',
+                $data['subject'] ?? null,
+                $data['education_level'] ?? null,
                 $id
             ]);
 

@@ -23,31 +23,33 @@ if (!$job) {
 }
 
 // Sjekk at bruker eier stillingen (eller er admin)
-if ($job['employer_id'] != $_SESSION['user_id'] && !has_role('admin')) {
+if ($job['employer_id'] != Auth::id() && !has_role('admin')) {
     redirect('view.php?id=' . $job_id, 'Du har ikke tilgang til å redigere denne stillingen.', 'danger');
 }
 
 // HÅNDTER POST-REQUEST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title          = sanitize_input($_POST['title']            ?? '');
-    $company        = sanitize_input($_POST['company']          ?? '');
-    $location       = sanitize_input($_POST['location']         ?? '');
-    $job_type       = sanitize_input($_POST['job_type']         ?? '');
-    $description    = sanitize_input($_POST['description']      ?? '');
-    $requirements   = sanitize_input($_POST['requirements']     ?? '');
-    $salary         = sanitize_input($_POST['salary']           ?? '');
-    $deadline       = sanitize_input($_POST['deadline']         ?? '');
-    $status         = sanitize_input($_POST['status']           ?? 'active');
-    $subject        = sanitize_input($_POST['subject']          ?? '');
-    $education_level= sanitize_input($_POST['education_level']  ?? '');
+    
+    csrf_check();
+
+    $title          = Validator::sanitize($_POST['title']            ?? '');
+    $location       = Validator::sanitize($_POST['location']         ?? '');
+    $job_type       = Validator::sanitize($_POST['job_type']         ?? '');
+    $description    = Validator::sanitize($_POST['description']      ?? '');
+    $requirements   = Validator::sanitize($_POST['requirements']     ?? '');
+    $salary         = Validator::sanitize($_POST['salary']           ?? '');
+    $deadline       = Validator::sanitize($_POST['deadline']         ?? '');
+    $status         = Validator::sanitize($_POST['status']           ?? 'active');
+    $subject        = Validator::sanitize($_POST['subject']          ?? '');
+    $education_level= Validator::sanitize($_POST['education_level']  ?? '');
 
     // Validering
-    if (!validate_required($title) || 
-        !validate_required($location) || 
-        !validate_required($job_type) || 
-        !validate_required($description) || 
-        !validate_required($requirements) || 
-        !validate_required($deadline)) {
+    if (!Validator::required($title)        || 
+        !Validator::required($location)     || 
+        !Validator::required($job_type)     || 
+        !Validator::required($description)  || 
+        !Validator::required($requirements) || 
+        !Validator::required($deadline)) {
 
         show_error('Vennligst fyll ut alle obligatoriske felt.');
 
@@ -55,15 +57,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         show_error('Stillingsbeskrivelsen må være minst 50 tegn.');
 
-    } elseif (!empty($deadline) && strtotime($deadline) < time()) {
+    } elseif (!Validator::validateDate($deadline)) {
+
+        show_error('Ugyldig datoformat for søknadsfrist.');
+
+    } elseif (strtotime($deadline) < time()) {
 
         show_error('Søknadsfristen må være en fremtidig dato.');
 
     } else {
+
         // Ingen feil, oppdater stilling
         $updated_job = [
             'title'          => $title,
-            'company'        => $company,
             'location'       => $location,
             'job_type'       => $job_type,
             'description'    => $description,
@@ -85,7 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $job = array_merge($job, [
             'title'          => $title,
-            'company'        => $company,
             'location'       => $location,
             'job_type'       => $job_type,
             'description'    => $description,
@@ -117,6 +122,7 @@ require_once '../includes/header.php';
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <form method="POST" action="" novalidate>
+                        <?php echo csrf_field(); ?>
                         <!-- Title -->
                         <div class="mb-3">
                             <label for="title" class="form-label">Stillingstittel *</label>
@@ -125,10 +131,17 @@ require_once '../includes/header.php';
                         </div>
 
                         <!-- Company -->
-                        <div class="mb-3">
-                            <label for="company" class="form-label">Bedrift/Organisasjon *</label>
-                            <input type="text" class="form-control" id="company" name="company" 
-                                   value="<?php echo htmlspecialchars($job['company'] ?? ''); ?>" readonly>
+                            <div class="mb-3">
+                            <label class="form-label">Bedrift/Organisasjon</label>
+                            <input type="text" 
+                                   class="form-control bg-light" 
+                                   value="<?php echo htmlspecialchars($job['company'] ?? ''); ?>" 
+                                   readonly 
+                                   tabindex="-1">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i>
+                                Kan ikke endres
+                            </small>
                         </div>
 
                         <!-- Location & Type -->

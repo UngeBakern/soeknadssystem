@@ -1,11 +1,9 @@
 <?php
 require_once '../includes/autoload.php';
 
-
-
 // Redirect if already logged in
-if (is_logged_in()) {
-    $redirect_url = has_role('employer') 
+if (Auth::isLoggedIn()) {
+    $redirect_url = Auth::hasRole('employer') 
     ? '../dashboard/employer.php' 
     : '../dashboard/applicant.php';
     redirect($redirect_url, 'Du er allerede logget inn.', 'info');
@@ -17,17 +15,29 @@ $role = $_GET['type'] ?? 'applicant';
 $name = '';
 $email = '';
 $phone = '';
+$birthdate = ''; 
+$address = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name             = sanitize_input($_POST['name']      ?? '');
-    $email            = sanitize_input($_POST['email']     ?? '');
-    $password         = $_POST['password']                 ?? '';
-    $confirm_password = $_POST['confirm_password']         ?? '';
-    $role             = sanitize_input($_POST['role'] ?? 'applicant');
-    $phone            = sanitize_input($_POST['phone']     ?? '');
+    csrf_check();
+
+    $name             = Validator::sanitize($_POST['name']      ?? '');
+    $email            = Validator::sanitize($_POST['email']     ?? '');
+    $password         = $_POST['password']                      ?? '';
+    $confirm_password = $_POST['confirm_password']              ?? '';
+    $role             = $_POST['role'] ?? 'applicant';
+    $phone            = Validator::sanitize($_POST['phone']     ?? '');
+    $birthdate        = Validator::sanitize($_POST['birthdate'] ?? '');
+    $address          = Validator::sanitize($_POST['address']   ?? '');
+
+    // Whitelist for roller
+    $allowed_roles = ['applicant', 'employer'];
+    if (!in_array($role, $allowed_roles)) {
+        $role = 'applicant';
+    }
 
     // Validation
-    if (!validate_required($name) || !validate_required($email) || !validate_required($password)) {
+    if (!Validator::required($name) || !Validator::required($email) || !Validator::required($password)) {
 
         show_error('Navn, e-post og passord må fylles ut');
         
@@ -35,9 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         show_error('Ugyldig e-postadresse');
 
-    } elseif (strlen($password) < 6) {
+    } elseif (!Validator::validatePassword($password)) {
 
-        show_error('Passord må være minst 6 tegn');
+        show_error('Passord må være minst 8 tegn og inneholde store bokstaver, små bokstaver og tall.');
 
     } elseif ($password !== $confirm_password) {
 
@@ -47,22 +57,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         show_error('E-postadressen er allerede registrert.');
 
+    } elseif (!empty($birthdate) && !Validator::validateDate($birthdate)) {
+
+        show_error('Ugyldig fødselsdato. Bruk formatet ÅÅÅÅ-MM-DD.');
+
+    } elseif (!empty($phone) && !Validator::validatePhone($phone)) {
+
+        show_error('Ugyldig telefonnummer.');
+
     } else {
 
         // Opprett ny bruker 
         $user_id = User::create([
             'name'          => $name,
             'email'         => $email,
-            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'password'      => $password,
             'role'          => $role,
-            'phone'         => $phone
+            'phone'         => $phone ?: null,
+            'birthdate'     => $birthdate ?: null,
+            'address'       => $address ?: null
         ]);
 
         if ($user_id) {
-
-            $_SESSION['user_id']   = $user_id;
-            $_SESSION['role']      = $role;
-            $_SESSION['user_name'] = $name;
+            $user = User::findById($user_id);
+            
+            if($user) {
+                Auth::login($user);
+                csrf_regenerate();
+            }
             
             // Redirect til dashboard
             $redirect_url = $role === 'employer' 
@@ -101,7 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <?php render_flash_messages(); ?>
 
-                        <form method="POST" action="">
+                        <form method="POST" action="" novalidate>
+                            <?php echo csrf_field(); ?>
+
                             <div class="mb-3">
                                 <label for="name" class="form-label">Fullt navn</label>
                                 <input type="text" 
@@ -110,9 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        name="name" 
                                        value="<?php echo htmlspecialchars($name ?? ''); ?>"
                                        required>
-                                <div class="invalid-feedback">
-                                    Vennligst oppgi ditt fulle navn.
-                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -123,24 +144,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        name="email" 
                                        value="<?php echo htmlspecialchars($email ?? ''); ?>"
                                        required>
-                                <div class="invalid-feedback">
-                                    Vennligst oppgi en gyldig e-postadresse.
-                                </div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="role" class="form-label">Jeg er en</label>
                                 <select class="form-select" id="role" name="role" required>
                                     <option value="applicant" <?php echo $role === 'applicant' ? 'selected' : ''; ?>>
-                                        Jobbsøker (Student/Hjelpelærer)
+                                        Jobbsøker 
                                     </option>
                                     <option value="employer" <?php echo $role === 'employer' ? 'selected' : ''; ?>>
-                                        Arbeidsgiver (Skole/Institusjon)
+                                        Arbeidsgiver 
                                     </option>
                                 </select>
-                                <div class="invalid-feedback">
-                                    Vennligst velg brukertype.
-                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -150,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        id="phone" 
                                        name="phone" 
                                        value="<?php echo htmlspecialchars($phone); ?>"
-                                       placeholder="12345678">
+                                       placeholder="900 00 000">
                             </div>
 
                             <div class="mb-3">
@@ -160,10 +175,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        id="password" 
                                        name="password" 
                                        required>
-                                <small class="text-muted">Minimum 6 tegn</small>
-                                <div class="invalid-feedback">
-                                    Vennligst oppgi et passord.
-                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -173,9 +184,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        id="confirm_password" 
                                        name="confirm_password" 
                                        required>
-                                <div class="invalid-feedback">
-                                    Passordene stemmer ikke overens.
-                                </div>
+                                       <small class="text-muted">Minimum 8 tegn, med store bokstaver, små bokstaver og ett tall.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="birthdate" class="form-label">Fødselsdato</label>
+                                <input type="date" 
+                                    class="form-control" 
+                                    id="birthdate" 
+                                    name="birthdate" 
+                                    value="<?php echo htmlspecialchars($birthdate); ?>"
+                                    max="<?php echo date('Y-m-d'); ?>">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Adresse</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="address" 
+                                       name="address" 
+                                       value="<?php echo htmlspecialchars($address); ?>"
+                                        placeholder="Gate 1, 0123 Oslo"
+                                        maxlength="255">
+                                        <small class="text-muted">Valgfritt </small>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 mb-3">
@@ -198,20 +229,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <!----<script src="../assets/js/main.js"></script>---->
-    
-    <script>
-    // Password confirmation validation
-    document.getElementById('confirm_password').addEventListener('input', function() {
-        const password = document.getElementById('password').value;
-        const confirmPassword = this.value;
-        
-        if (password !== confirmPassword) {
-            this.setCustomValidity('Passordene stemmer ikke overens');
-        } else {
-            this.setCustomValidity('');
-        }
-    });
-    </script>
 </body>
 </html>

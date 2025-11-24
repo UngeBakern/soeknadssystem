@@ -78,7 +78,7 @@ include_once '../includes/header.php';
                                         <a href="view.php?id=<?php echo $job['id']; ?>" class="btn btn-outline-primary btn-sm">
                                             Se detaljer
                                         </a>
-                                        <?php if (isset($_SESSION['user_id'])): ?>
+                                        <?php if (Auth::isLoggedIn()): ?>
                                             <a href="apply.php?id=<?php echo $job['id']; ?>" class="btn btn-primary btn-sm">
                                                 Søk på stillingen
                                             </a>

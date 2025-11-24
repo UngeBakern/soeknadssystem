@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
         redirect('applicant.php', 'Søknaden ble ikke funnet.', 'danger'); 
     }
 
-    if ($application['applicant_id'] != ($_SESSION['user_id'] ?? 0)) {
+    if ($application['applicant_id'] != Auth::id()) {
         redirect('applicant.php', 'Du har ikke tillatelse til å trekke tilbake denne søknaden.', 'danger'); 
     }
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
 
 // Hent brukerinfo 
 $user_name = $_SESSION['user_name'] ?? 'Bruker';
-$user_id = $_SESSION['user_id'];
+$user_id = Auth::id();
 
 // Hent data fra Models 
 $all_jobs = Job::getAll();

@@ -31,16 +31,20 @@ if (!empty($job['deadline']) && strtotime($job['deadline']) < time()) {
 }
 
 // Sjekk om bruker allerede har søkt
-if (Application::hasApplied($job_id, $_SESSION['user_id'])) {
+if (Application::hasApplied($job_id, Auth::id())) {
     redirect('view.php?id=' . $job_id, 'Du har allerede søkt på denne stillingen', 'danger');
 }
 
+$cover_letter = '';
+
 // Håndter søknadsinnsending
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $cover_letter = sanitize_input($_POST['cover_letter'] ?? '');
+    csrf_check();
+
+    $cover_letter = Validator::sanitize($_POST['cover_letter'] ?? '');
     
     // Validering
-    if (empty($cover_letter)) {
+    if (!Validator::required($cover_letter)) {
 
         show_error('Søknadsbrev er påkrevd.');
 
@@ -50,15 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
-            // Last opp CV
-            $cv_path = 'test_cv.pdf';
-
             // Opprett søknad
             $application_data = [
                 'job_id'        => $job_id,
-                'applicant_id'  => $_SESSION['user_id'],
+                'applicant_id'  => Auth::id(),
                 'cover_letter'  => $cover_letter,
-                'cv_path'       => $cv_path
+                'cv_path'       => null
             ];
             
             $application_id = Application::create($application_data);
@@ -78,6 +79,7 @@ include_once '../includes/header.php';
 ?>
 
 <div class="container my-5">
+    <?php render_flash_messages(); ?>
     <!-- Stillingsinfo øverst -->
     <div class="row mb-4">
         <div class="col-12">
@@ -173,9 +175,10 @@ include_once '../includes/header.php';
                 </div>
                 
                 <div class="card-body p-4">
-                    
-                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        
+
+                    <form method="POST" action="" novalidate>
+                        <?php echo csrf_field(); ?>
+
                         <!-- Søknadsbrev -->
                         <div class="mb-4">
                             <label for="cover_letter" class="form-label fw-bold">
@@ -188,7 +191,7 @@ include_once '../includes/header.php';
                                 rows="12"
                                 minlength="100"
                                 placeholder="Skriv ditt søknadsbrev her... (minimum 100 tegn)"
-                                required><?php echo htmlspecialchars($_POST['cover_letter'] ?? ''); ?></textarea>
+                                required><?php echo htmlspecialchars($cover_letter); ?></textarea>
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Fortell hvorfor du er den rette kandidaten for stillingen.
@@ -252,45 +255,5 @@ include_once '../includes/header.php';
         </div>
     </div>
 </div>
-
-<script>
-// Bootstrap form validation
-(function() {
-    'use strict';
-    var forms = document.querySelectorAll('.needs-validation');
-    Array.prototype.slice.call(forms).forEach(function(form) {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
-})();
-
-// Character counter for cover letter
-const coverLetter = document.getElementById('cover_letter');
-const currentCount = document.getElementById('currentCount');
-
-function updateCharCount() {
-    const length = coverLetter.value.length;
-    currentCount.textContent = length;
-    
-    const min = 100;
-    if (length < min) {
-        coverLetter.setCustomValidity(`Minimum ${min} tegn`);
-        currentCount.classList.add('text-danger');
-        currentCount.classList.remove('text-success');
-    } else {
-        coverLetter.setCustomValidity('');
-        currentCount.classList.add('text-success');
-        currentCount.classList.remove('text-danger');
-    }
-}
-
-coverLetter.addEventListener('input', updateCharCount);
-updateCharCount(); // Initial count
-</script>
 
 <?php include_once '../includes/footer.php'; ?>
