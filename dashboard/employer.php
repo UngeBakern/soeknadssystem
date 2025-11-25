@@ -40,7 +40,7 @@ require_once '../includes/header.php';
     <div class="row">
         <div class="col-12">
             <div class="mb-4">
-                <h1 class="h2 mb-2">Velkommen, <?php echo htmlspecialchars($user_name); ?>!</h1>
+                <h1 class="h2 mb-2">Velkommen, <?php echo Validator::sanitize($user_name); ?>!</h1>
                 <p class="text-muted">Administrer dine stillingsannonser og søknader</p>
             </div>
 
@@ -138,10 +138,10 @@ require_once '../includes/header.php';
                                             <td>
                                                 <a href="../jobs/view.php?id=<?php echo $job['id']; ?>" 
                                                    class="text-decoration-none text-dark">
-                                                    <?php echo htmlspecialchars($job['title']); ?>
+                                                    <?php echo Validator::sanitize($job['title']); ?>
                                                 </a>
                                             </td>
-                                            <td><?php echo htmlspecialchars($job['location']); ?></td>
+                                            <td><?php echo Validator::sanitize($job['location']); ?></td>
                                             <td><?php echo date('d.m.Y', strtotime($job['created_at'])); ?></td>
                                             <td>
                                                 <span class="badge bg-success">Aktiv</span>
@@ -226,10 +226,10 @@ require_once '../includes/header.php';
                                     <td>
                                         <a href="../jobs/view.php?id=<?php echo $job['id']; ?>" 
                                            class="text-decoration-none text-muted">
-                                            <?php echo htmlspecialchars($job['title']); ?>
+                                            <?php echo Validator::sanitize($job['title']); ?>
                                         </a>
                                     </td>
-                                    <td><?php echo htmlspecialchars($job['location']); ?></td>
+                                    <td><?php echo Validator::sanitize($job['location']); ?></td>
                                     <td><?php echo date('d.m.Y', strtotime($job['created_at'])); ?></td>
                                     <td>
                                         <span class="badge bg-secondary">Inaktiv</span>

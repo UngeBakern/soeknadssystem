@@ -27,11 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     csrf_check(); 
 
-    $name       = Validator::sanitize($_POST['name']       ?? '');
-    $email      = Validator::sanitize($_POST['email']      ?? '');
-    $birthdate  = Validator::sanitize($_POST['birthdate']  ?? '');
-    $phone      = Validator::sanitize($_POST['phone']      ?? '');
-    $address    = Validator::sanitize($_POST['address']    ?? '');
+    $name       = Validator::clean($_POST['name']       ?? '');
+    $email      = Validator::clean($_POST['email']      ?? '');
+    $birthdate  = Validator::clean($_POST['birthdate']  ?? '');
+    $phone      = Validator::clean($_POST['phone']      ?? '');
+    $address    = Validator::clean($_POST['address']    ?? '');
 
     if (!Validator::required($name) || !Validator::required($email)) {
 
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             show_error('Det oppstod en feil under oppdatering av profilen. Vennligst prøv igjen.');
         }
     }
-
+        // Beholder verdier i skjema ved feil
         $user = array_merge($user, [
             'name'      => $name,
             'email'     => $email, 
@@ -109,23 +109,23 @@ include_once '../includes/header.php';
                             <?php echo csrf_field(); ?>
                             <div class="mb-3">
                                 <label for="name" class="form-label">Navn</label>
-                                <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>
+                                <input type="text" class="form-control" id="name" name="name" value="<?php echo Validator::sanitize($user['name']); ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-post</label>
-                                <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                                <input type="email" class="form-control" id="email" name="email" value="<?php echo Validator::sanitize($user['email']); ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="birthdate" class="form-label">Fødselsdato</label>
-                                <input type="date" class="form-control" id="birthdate" name="birthdate" max="<?php echo date('Y-m-d'); ?>"   value="<?php echo htmlspecialchars($user['birthdate'] ?? ''); ?>">
+                                <input type="date" class="form-control" id="birthdate" name="birthdate" max="<?php echo date('Y-m-d'); ?>"   value="<?php echo Validator::sanitize($user['birthdate'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="phone" class="form-label">Telefon</label>
-                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="900 00 000" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>">
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="900 00 000" value="<?php echo Validator::sanitize($user['phone'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="address" class="form-label">Adresse</label>
-                                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
+                                <input type="text" class="form-control" id="address" name="address" value="<?php echo Validator::sanitize($user['address'] ?? ''); ?>">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Brukertype</label>

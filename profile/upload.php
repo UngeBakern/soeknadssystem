@@ -15,6 +15,8 @@ $user_id = Auth::id();
 
 // Håndter filopplasting
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
+
+    csrf_check();
     
     if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
    
@@ -37,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
 
 // Håndter sletting 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+
+    csrf_check();
     
     $document_id = filter_input(INPUT_POST, 'document_id', FILTER_VALIDATE_INT);
 
@@ -138,7 +142,7 @@ include_once '../includes/header.php';
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-file-<?php echo $doc['file_type'] === 'pdf' ? 'pdf' : 'alt'; ?> fa-2x text-primary me-3"></i>
                                         <div>
-                                            <h6 class="mb-0"><?php echo htmlspecialchars($doc['original_filename']); ?></h6>
+                                            <h6 class="mb-0"><?php echo Validator::sanitize($doc['original_filename']); ?></h6>
                                             <small class="text-muted">
                                                 <?php 
                                                 $types = [
@@ -155,7 +159,7 @@ include_once '../includes/header.php';
                                         </div>
                                     </div>
                                     <div class="btn-group" role="group">
-                                        <a href="../<?php echo htmlspecialchars($doc['file_path']); ?>" 
+                                        <a href="../<?php echo Validator::sanitize($doc['file_path']); ?>" 
                                            class="btn btn-sm btn-outline-primary" 
                                            target="_blank"
                                            title="Åpne dokument">
@@ -163,6 +167,7 @@ include_once '../includes/header.php';
                                         </a>
                                         <form method="POST" style="display: inline;" 
                                               onsubmit="return confirm('Er du sikker på at du vil slette dette dokumentet?');">
+                                              <?php echo csrf_field(); ?>
                                             <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
                                             <button type="submit" 
                                                     name="delete" 

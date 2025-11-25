@@ -21,14 +21,14 @@ $address = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    $name             = Validator::sanitize($_POST['name']      ?? '');
-    $email            = Validator::sanitize($_POST['email']     ?? '');
+    $name             = Validator::clean($_POST['name']      ?? '');
+    $email            = Validator::clean($_POST['email']     ?? '');
     $password         = $_POST['password']                      ?? '';
     $confirm_password = $_POST['confirm_password']              ?? '';
     $role             = $_POST['role'] ?? 'applicant';
-    $phone            = Validator::sanitize($_POST['phone']     ?? '');
-    $birthdate        = Validator::sanitize($_POST['birthdate'] ?? '');
-    $address          = Validator::sanitize($_POST['address']   ?? '');
+    $phone            = Validator::clean($_POST['phone']     ?? '');
+    $birthdate        = Validator::clean($_POST['birthdate'] ?? '');
+    $address          = Validator::clean($_POST['address']   ?? '');
 
     // Whitelist for roller
     $allowed_roles = ['applicant', 'employer'];
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        class="form-control" 
                                        id="name" 
                                        name="name" 
-                                       value="<?php echo htmlspecialchars($name ?? ''); ?>"
+                                       value="<?php echo Validator::sanitize($name ?? ''); ?>"
                                        required>
                             </div>
 
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        class="form-control" 
                                        id="email" 
                                        name="email" 
-                                       value="<?php echo htmlspecialchars($email ?? ''); ?>"
+                                       value="<?php echo Validator::sanitize($email ?? ''); ?>"
                                        required>
                             </div>
 
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        class="form-control" 
                                        id="phone" 
                                        name="phone" 
-                                       value="<?php echo htmlspecialchars($phone); ?>"
+                                       value="<?php echo Validator::sanitize($phone); ?>"
                                        placeholder="900 00 000">
                             </div>
 
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class="form-control" 
                                     id="birthdate" 
                                     name="birthdate" 
-                                    value="<?php echo htmlspecialchars($birthdate); ?>"
+                                    value="<?php echo Validator::sanitize($birthdate); ?>"
                                     max="<?php echo date('Y-m-d'); ?>">
                             </div>
 
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        class="form-control" 
                                        id="address" 
                                        name="address" 
-                                       value="<?php echo htmlspecialchars($address); ?>"
+                                       value="<?php echo Validator::sanitize($address); ?>"
                                         placeholder="Gate 1, 0123 Oslo"
                                         maxlength="255">
                                         <small class="text-muted">Valgfritt </small>

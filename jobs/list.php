@@ -44,7 +44,7 @@ include_once '../includes/header.php';
                                     <div class="organization-logo mb-3">
                                         <div class="d-inline-flex align-items-center justify-content-center organization-logo-size">
                                             <img src="../assets/images/uialogo.jpeg" 
-                                                 alt="<?php echo htmlspecialchars($job['employer_name'] ?? 'Logo'); ?>" 
+                                                 alt="<?php echo Validator::sanitize($job['employer_name'] ?? 'Logo'); ?>" 
                                                  class="img-fluid">
                                         </div>
                                     </div>
@@ -55,18 +55,18 @@ include_once '../includes/header.php';
                                     <!-- Date and Location -->
                                     <div class="text-muted small mb-2">
                                         <?php echo date('d. M Y', strtotime($job['created_at'])); ?> | 
-                                        <?php echo isset($job['location']) ? htmlspecialchars($job['location']) : 'Ikke oppgitt'; ?>
+                                        <?php echo isset($job['location']) ? Validator::sanitize($job['location']) : 'Ikke oppgitt'; ?>
                                     </div>
                                     
                                     <!-- Job Title -->
                                     <h5 class="card-title mb-3 fw-bold">
-                                        <?php echo htmlspecialchars($job['title'] ?? 'Ingen tittel'); ?>
+                                        <?php echo Validator::sanitize($job['title'] ?? 'Ingen tittel'); ?>
                                     </h5>
                                     
                                     <!-- Company Name -->
                                     <div class="job-info mb-3">
                                         <div class="text-muted small mb-1">
-                                            <strong><?php echo htmlspecialchars($job['employer_name'] ?? 'Ukjent arbeidsgiver'); ?></strong>
+                                            <strong><?php echo Validator::sanitize($job['employer_name'] ?? 'Ukjent arbeidsgiver'); ?></strong>
                                         </div>
                                         <div class="text-muted small">
                                             1 stilling

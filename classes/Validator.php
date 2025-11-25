@@ -47,10 +47,19 @@ class Validator {
      * Sanitize input
      */
     public static function sanitize($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    return $data;
+    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
+     * Clean input
+     */
+    public static function clean($data) {
+        if (!is_string($data)) {
+            return $data;
+        }
+        $data = trim($data);
+        $data = str_replace(["\r\n", "\r"], "\n", $data); // Normaliser linjeskift
+        return $data;
     }
 
     /**

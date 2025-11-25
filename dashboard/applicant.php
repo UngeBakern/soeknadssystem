@@ -10,6 +10,8 @@ auth_check(['applicant']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'])) {
 
+    csrf_check();
+
     $application_id = filter_input(INPUT_POST, 'application_id', FILTER_VALIDATE_INT);
 
     if (!$application_id) {
@@ -54,7 +56,7 @@ $pending_applications = array_filter($my_applications, function($app) {
 });
 
 $accepted_applications = array_filter($my_applications, function($app) {
-    return $app['status'] === 'Akseptert';
+    return $app['status'] === 'Tilbud';
 });
 
 $rejected_applications = array_filter($my_applications, function($app) {
@@ -92,7 +94,7 @@ require_once '../includes/header.php';
         <div class="row">
             <div class="col-12">
                 <div class="mb-4">
-                    <h1 class="h2 mb-2">Velkommen, <?php echo htmlspecialchars($user_name); ?>!</h1>
+                    <h1 class="h2 mb-2">Velkommen, <?php echo Validator::sanitize($user_name); ?>!</h1>
                     <p class="text-muted">Finn din neste hjelpelærerstilling</p>
                 </div>
                 <?php render_flash_messages(); ?>
@@ -199,21 +201,21 @@ require_once '../includes/header.php';
                                             <h6 class="mb-0">
                                                 <a href="../jobs/view.php?id=<?php echo $application['job_id']; ?>" 
                                                    class="text-decoration-none text-dark">
-                                                    <?php echo htmlspecialchars($application['job_title']); ?>
+                                                    <?php echo Validator::sanitize($application['job_title']); ?>
                                                 </a>
                                             </h6>
                                             <span class="badge bg-<?php echo $badge_color; ?> ms-2">
-                                                <?php echo htmlspecialchars($application['status']); ?>
+                                                <?php echo Validator::sanitize($application['status']); ?>
                                             </span>
                                         </div>
                                         <p class="text-muted small mb-1">
                                             <i class="fas fa-building me-1"></i>
-                                            <?php echo htmlspecialchars($application['employer_name']); ?>
+                                            <?php echo Validator::sanitize($application['employer_name']); ?>
                                         </p>
                                         <?php if (!empty($application['location'])): ?>
                                             <p class="text-muted small mb-2">
                                                 <i class="fas fa-map-marker-alt me-1"></i>
-                                                <?php echo htmlspecialchars($application['location']); ?>
+                                                <?php echo Validator::sanitize($application['location']); ?>
                                             </p>
                                         <?php endif; ?>
                                         <small class="text-muted d-block mb-2">
@@ -229,6 +231,7 @@ require_once '../includes/header.php';
                                             
                                             <?php if ($application['status'] !== 'Tilbud' && $application['status'] !== 'Avslått'): ?>
                                                 <form method="POST" style="display: inline;">
+                                                    <?php echo csrf_field(); ?>
                                                     <input type="hidden" name="withdraw_application" value="1">
                                                     <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
                                                     <button type="submit" 
@@ -290,11 +293,11 @@ require_once '../includes/header.php';
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($job['title']); ?></h6>
-                                        <p class="text-muted small mb-2"><?php echo htmlspecialchars($job['company']); ?></p>
+                                        <h6 class="mb-1"><?php echo Validator::sanitize($job['title']); ?></h6>
+                                        <p class="text-muted small mb-2"><?php echo Validator::sanitize($job['company']); ?></p>
                                         <p class="text-muted small mb-2">
                                             <i class="fas fa-map-marker-alt me-1"></i>
-                                            <?php echo htmlspecialchars($job['location']); ?>
+                                            <?php echo Validator::sanitize($job['location']); ?>
                                         </p>
                                         <div class="d-flex gap-2">
                                             <a href="../jobs/view.php?id=<?php echo $job['id']; ?>" 

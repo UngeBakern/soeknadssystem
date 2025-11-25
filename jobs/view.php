@@ -56,14 +56,14 @@ require_once '../includes/header.php';
                                  onerror="this.src='https://via.placeholder.com/70'">
                         </div>
                         <div>
-                            <h1 class="h3 mb-1 fw-bold"><?php echo htmlspecialchars($job['title']); ?></h1>
+                            <h1 class="h3 mb-1 fw-bold"><?php echo Validator::sanitize($job['title']); ?></h1>
                             <div class="text-muted mb-1">
                                 <i class="fas fa-building me-1"></i>
-                                <strong><?php echo htmlspecialchars($job['employer_name']); ?></strong>
+                                <strong><?php echo Validator::sanitize($job['employer_name']); ?></strong>
                                 <?php if (!empty($job['location'])): ?>
                                     <span class="mx-2">•</span>
                                     <i class="fas fa-map-marker-alt me-1"></i>
-                                    <?php echo htmlspecialchars($job['location']); ?>
+                                    <?php echo Validator::sanitize($job['location']); ?>
                                 <?php endif; ?>
                             </div>
                             <?php if (!empty($job['deadline'])): ?>
@@ -83,7 +83,7 @@ require_once '../includes/header.php';
                             <i class="fas fa-info-circle text-primary me-2"></i>
                             Stillingsbeskrivelse
                         </h5>
-                        <p class="text-muted"><?php echo nl2br(htmlspecialchars($job['description'])); ?></p>
+                        <p class="text-muted"><?php echo nl2br(Validator::sanitize($job['description'])); ?></p>
                     </div>
 
                     <!-- Requirements -->
@@ -93,7 +93,7 @@ require_once '../includes/header.php';
                             <i class="fas fa-check-circle text-success me-2"></i>
                             Krav og kvalifikasjoner
                         </h5>
-                        <p class="text-muted"><?php echo nl2br(htmlspecialchars($job['requirements'])); ?></p>
+                        <p class="text-muted"><?php echo nl2br(Validator::sanitize($job['requirements'])); ?></p>
                     </div>
                     <?php endif; ?>
 
@@ -103,7 +103,7 @@ require_once '../includes/header.php';
                         <div class="col-md-4 mb-3">
                             <div class="p-3 bg-light rounded">
                                 <small class="text-muted d-block mb-1">Stillingstype</small>
-                                <strong><?php echo htmlspecialchars($job['job_type']); ?></strong>
+                                <strong><?php echo Validator::sanitize($job['job_type']); ?></strong>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -112,7 +112,7 @@ require_once '../includes/header.php';
                         <div class="col-md-4 mb-3">
                             <div class="p-3 bg-light rounded">
                                 <small class="text-muted d-block mb-1">Lønn</small>
-                                <strong><?php echo htmlspecialchars($job['salary']); ?></strong>
+                                <strong><?php echo Validator::sanitize($job['salary']); ?></strong>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -121,7 +121,7 @@ require_once '../includes/header.php';
                         <div class="col-md-4 mb-3">
                             <div class="p-3 bg-light rounded">
                                 <small class="text-muted d-block mb-1">Fag/område</small>
-                                <strong><?php echo htmlspecialchars($job['subject']); ?></strong>
+                                <strong><?php echo Validator::sanitize($job['subject']); ?></strong>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -131,7 +131,7 @@ require_once '../includes/header.php';
                     <div class="mb-4">
                         <div class="p-3 bg-light rounded">
                             <small class="text-muted d-block mb-1">Utdanningsnivå</small>
-                            <strong><?php echo htmlspecialchars($job['education_level']); ?></strong>
+                            <strong><?php echo Validator::sanitize($job['education_level']); ?></strong>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -187,7 +187,7 @@ require_once '../includes/header.php';
                         Om arbeidsgiver
                     </h6>
                     <p class="text-muted mb-2">
-                        <?php echo htmlspecialchars($job['employer_name']); ?>
+                        <?php echo Validator::sanitize($job['employer_name']); ?>
                     </p>
                     <p class="text-muted small mb-0">
                         <i class="fas fa-clock me-1"></i>

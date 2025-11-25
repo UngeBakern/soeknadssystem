@@ -41,7 +41,7 @@ $cover_letter = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    $cover_letter = Validator::sanitize($_POST['cover_letter'] ?? '');
+    $cover_letter = Validator::clean($_POST['cover_letter'] ?? '');
     
     // Validering
     if (!Validator::required($cover_letter)) {
@@ -85,11 +85,11 @@ include_once '../includes/header.php';
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h3 class="mb-3"><?php echo htmlspecialchars($job['title']); ?></h3>
-                    
+                    <h3 class="mb-3"><?php echo Validator::sanitize($job['title']); ?></h3>
+
                     <p class="text-muted mb-4">
                         <i class="fas fa-building me-2"></i>
-                        <?php echo htmlspecialchars($job['company']); ?>
+                        <?php echo Validator::sanitize($job['company']); ?>
                     </p>
                     
                     <div class="row g-3 mb-4">
@@ -98,7 +98,7 @@ include_once '../includes/header.php';
                                 <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
                                 <div>
                                     <small class="text-muted d-block">Lokasjon</small>
-                                    <strong><?php echo htmlspecialchars($job['location']); ?></strong>
+                                    <strong><?php echo Validator::sanitize($job['location']); ?></strong>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +108,7 @@ include_once '../includes/header.php';
                                 <i class="fas fa-briefcase text-primary me-2 mt-1"></i>
                                 <div>
                                     <small class="text-muted d-block">Type</small>
-                                    <strong><?php echo htmlspecialchars($job['job_type']); ?></strong>
+                                    <strong><?php echo Validator::sanitize($job['job_type']); ?></strong>
                                 </div>
                             </div>
                         </div>
@@ -129,7 +129,7 @@ include_once '../includes/header.php';
                                     <i class="fas fa-money-bill-wave text-primary me-2 mt-1"></i>
                                     <div>
                                         <small class="text-muted d-block">Lønn</small>
-                                        <strong><?php echo htmlspecialchars($job['salary']); ?></strong>
+                                        <strong><?php echo Validator::sanitize($job['salary']); ?></strong>
                                     </div>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@ include_once '../includes/header.php';
                         <hr class="my-4">
                         <h5 class="mb-3">Om stillingen</h5>
                         <div class="job-description">
-                            <?php echo nl2br(htmlspecialchars($job['description'])); ?>
+                            <?php echo nl2br(Validator::sanitize($job['description'])); ?>
                         </div>
                     <?php endif; ?>
                     
@@ -150,7 +150,7 @@ include_once '../includes/header.php';
                         <hr class="my-4">
                         <h5 class="mb-3">Krav og kvalifikasjoner</h5>
                         <div class="job-requirements">
-                            <?php echo nl2br(htmlspecialchars($job['requirements'])); ?>
+                            <?php echo nl2br(Validator::sanitize($job['requirements'])); ?>
                         </div>
                     <?php endif; ?>
                     
@@ -191,7 +191,7 @@ include_once '../includes/header.php';
                                 rows="12"
                                 minlength="100"
                                 placeholder="Skriv ditt søknadsbrev her... (minimum 100 tegn)"
-                                required><?php echo htmlspecialchars($cover_letter); ?></textarea>
+                                required><?php echo Validator::sanitize($cover_letter); ?></textarea>
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Fortell hvorfor du er den rette kandidaten for stillingen.

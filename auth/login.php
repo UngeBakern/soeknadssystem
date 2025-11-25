@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     csrf_check();
 
-    $email      = Validator::sanitize($_POST['email'] ?? '');
+    $email      = Validator::clean($_POST['email'] ?? '');
     $password   = $_POST['password'] ?? '';
 
     if (!Validator::required($email) || !Validator::required($password)) {
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        class="form-control" 
                                        id="email" 
                                        name="email" 
-                                       value="<?php echo htmlspecialchars($email); ?>"
+                                       value="<?php echo Validator::sanitize($email); ?>"
                                        required>
                             </div>
 
