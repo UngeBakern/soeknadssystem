@@ -26,7 +26,7 @@ if (has_role('employer') && $job['employer_id'] != Auth::id()) {
 // Hent alle søknader for denne jobben
 $applications = Application::getByJobId($job_id);
 
-$page_title = 'Søknader - ' . $job['title'];
+$page_title = 'Søknader - ' . Validator::sanitize($job['title']);
 $body_class = 'bg-light';
 
 require_once '../includes/header.php';
@@ -52,11 +52,11 @@ require_once '../includes/header.php';
                         <div>
                             <h4 class="mb-2">
                                 <i class="fas fa-briefcase text-primary me-2"></i>
-                                <?php echo htmlspecialchars($job['title']); ?>
+                                <?php echo Validator::sanitize($job['title']); ?>
                             </h4>
                             <p class="text-muted mb-1">
                                 <i class="fas fa-map-marker-alt me-2"></i>
-                                <?php echo htmlspecialchars($job['location']); ?>
+                                <?php echo Validator::sanitize($job['location']); ?>
                             </p>
                             <p class="text-muted mb-0">
                                 <i class="fas fa-users me-2"></i>
@@ -115,20 +115,20 @@ require_once '../includes/header.php';
                                         ?>
                                         <tr>
                                             <td>
-                                                <strong><?php echo htmlspecialchars($app['applicant_name']); ?></strong>
+                                                <strong><?php echo Validator::sanitize($app['applicant_name']); ?></strong>
                                             </td>
                                             <td>
-                                                <a href="mailto:<?php echo htmlspecialchars($app['applicant_email']); ?>">
-                                                    <?php echo htmlspecialchars($app['applicant_email']); ?>
+                                                <a href="mailto:<?php echo Validator::sanitize($app['applicant_email']); ?>">
+                                                    <?php echo Validator::sanitize($app['applicant_email']); ?>
                                                 </a>
                                             </td>
                                             <td>
-                                                <?php echo htmlspecialchars($app['applicant_phone'] ?? 'Ikke oppgitt'); ?>
+                                                <?php echo Validator::sanitize($app['applicant_phone'] ?? 'Ikke oppgitt'); ?>
                                             </td>
                                             <td><?php echo date('d.m.Y', strtotime($app['created_at'])); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php echo $badge_color; ?>">
-                                                    <?php echo htmlspecialchars($app['status']); ?>
+                                                    <?php echo Validator::sanitize($app['status']); ?>
                                                 </span>
                                             </td>
                                             <td>

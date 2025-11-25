@@ -48,27 +48,27 @@ include_once '../includes/header.php';
                         <ul class="list-group list-group-flush mb-4">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Navn</span>
-                                <strong><?php echo htmlspecialchars($user['name']); ?></strong>
+                                <strong><?php echo Validator::sanitize($user['name']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>E-post</span>
-                                <strong><?php echo htmlspecialchars($user['email']); ?></strong>
+                                <strong><?php echo Validator::sanitize($user['email']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Fødselsdato</span>
-                                <strong><?php echo htmlspecialchars($user['birthdate']); ?></strong>
+                                <strong><?php echo Validator::sanitize($user['birthdate']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Telefon</span>
-                                <strong><?php echo htmlspecialchars($user['phone']); ?></strong>
+                                <strong><?php echo Validator::sanitize($user['phone']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Adresse</span>
-                                <strong><?php echo htmlspecialchars($user['address']); ?></strong>
+                                <strong><?php echo Validator::sanitize($user['address']); ?></strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Brukertype</span>
-                                <span class="badge bg-primary"><?php echo  htmlspecialchars($type_label); ?></span>
+                                <span class="badge bg-primary"><?php echo  Validator::sanitize($type_label); ?></span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Varslinger:</span>

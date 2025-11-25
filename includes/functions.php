@@ -52,8 +52,8 @@ function render_flash_messages() {
 
     foreach ($flash_messages as $flash) {
 
-        $type   = htmlspecialchars($flash['type'] ?? 'danger');
-        $message = htmlspecialchars($flash['message'] ?? '');
+        $type   = Validator::sanitize($flash['type'] ?? 'danger');
+        $message = Validator::sanitize($flash['message'] ?? '');
 
         if ($message === '') {
             continue;
@@ -117,5 +117,5 @@ function getStatusBadge($status) {
         'inactive' => '<span class="badge bg-secondary">Inaktiv</span>',
         'deleted' => '<span class="badge bg-danger">Lukket</span>',
     ];
-    return $badges[$status] ?? '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>';
+    return $badges[$status] ?? '<span class="badge bg-secondary">' . Validator::sanitize($status) . '</span>';
 }

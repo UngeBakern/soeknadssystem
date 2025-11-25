@@ -25,7 +25,7 @@ function csrf_verify() {
  * CSRF input filed for forms 
  */
 function csrf_field() {
-    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token()) . '">';
+    return '<input type="hidden" name="csrf_token" value="' . Validator::sanitize(csrf_token()) . '">';
 }
 
 /**

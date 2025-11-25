@@ -65,7 +65,7 @@ require_once '../includes/header.php';
                         $badge_color = $status_badges[$application['status']] ?? 'secondary';
                         ?>
                         <span class="badge bg-<?php echo $badge_color; ?> fs-6">
-                            <?php echo htmlspecialchars($application['status']); ?>
+                            <?php echo Validator::sanitize($application['status']); ?>
                         </span>
                     </div>
                 </div>
@@ -79,17 +79,17 @@ require_once '../includes/header.php';
                         <h6>
                             <a href="../jobs/view.php?id=<?php echo $application['job_id']; ?>" 
                                class="text-decoration-none">
-                                <?php echo htmlspecialchars($application['job_title']); ?>
+                                <?php echo Validator::sanitize($application['job_title']); ?>
                             </a>
                         </h6>
                         <p class="text-muted mb-1">
                             <i class="fas fa-building me-2"></i>
-                            <?php echo htmlspecialchars($application['company']); ?>
+                            <?php echo Validator::sanitize($application['company']); ?>
                         </p>
                         <?php if (!empty($application['location'])): ?>
                         <p class="text-muted mb-1">
                             <i class="fas fa-map-marker-alt me-2"></i>
-                            <?php echo htmlspecialchars($application['location']); ?>
+                            <?php echo Validator::sanitize($application['location']); ?>
                         </p>
                         <?php endif; ?>
                         <p class="text-muted small mb-0">
@@ -106,12 +106,12 @@ require_once '../includes/header.php';
                             Søker
                         </h5>
                         <p class="mb-1">
-                            <strong>Navn:</strong> <?php echo htmlspecialchars($application['applicant_name']); ?>
+                            <strong>Navn:</strong> <?php echo Validator::sanitize($application['applicant_name']); ?>
                         </p>
                         <p class="mb-1">
                             <strong>E-post:</strong> 
-                            <a href="mailto:<?php echo htmlspecialchars($application['applicant_email']); ?>">
-                                <?php echo htmlspecialchars($application['applicant_email']); ?>
+                            <a href="mailto:<?php echo Validator::sanitize($application['applicant_email']); ?>">
+                                <?php echo Validator::sanitize($application['applicant_email']); ?>
                             </a>
                         </p>
                     </div>
@@ -124,7 +124,7 @@ require_once '../includes/header.php';
                             Søknadsbrev
                         </h5>
                         <div class="bg-light p-3 rounded">
-                            <p class="mb-0" style="white-space: pre-wrap;"><?php echo htmlspecialchars($application['cover_letter']); ?></p>
+                            <p class="mb-0" style="white-space: pre-wrap;"><?php echo Validator::sanitize($application['cover_letter']); ?></p>
                         </div>
                     </div>
 
@@ -138,9 +138,9 @@ require_once '../includes/header.php';
                             <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
                                 <div>
                                     <i class="fas fa-file-pdf text-danger me-2 fs-4"></i>
-                                    <span><?php echo basename($application['cv_path']); ?></span>
+                                    <span><?php echo Validator::sanitize(basename($application['cv_path'])); ?></span>
                                 </div>
-                                <a href="<?php echo htmlspecialchars($application['cv_path']); ?>" 
+                                <a href="<?php echo Validator::sanitize($application['cv_path']); ?>" 
                                    target="_blank"
                                    class="btn btn-sm btn-primary">
                                     <i class="fas fa-download me-1"></i>
@@ -158,6 +158,7 @@ require_once '../includes/header.php';
                         <h5 class="mb-3">Handlinger</h5>
                         <div class="d-flex gap-2">
                             <form method="POST" action="update_status.php" class="d-inline">
+                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
                                 <input type="hidden" name="status" value="Tilbud">
                                 <button type="submit" class="btn btn-success">
@@ -166,6 +167,7 @@ require_once '../includes/header.php';
                                 </button>
                             </form>
                             <form method="POST" action="update_status.php" class="d-inline">
+                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
                                 <input type="hidden" name="status" value="Avslått">
                                 <button type="submit" class="btn btn-danger"
