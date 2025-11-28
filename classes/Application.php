@@ -136,7 +136,37 @@ class Application {
         }
     }
 
-        /**
+    /**
+     * Status 
+     */
+    public static function getByApplicantAndStatus($user_id, $status) {
+
+        $pdo = Database::connect();
+
+        try {
+            $stmt = $pdo->prepare("
+                SELECT a.*, 
+                    j.title     AS job_title, 
+                    j.location  AS location, 
+                    u.name      AS employer_name
+                FROM applications a 
+                JOIN jobs j  ON a.job_id = j.id
+                JOIN users u ON j.employer_id = u.id
+                WHERE a.applicant_id = ?
+                AND a.status = ?
+                ORDER BY a.created_at DESC
+            ");
+
+            $stmt->execute([$user_id, $status]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+        } catch (PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Tall antall søknader for en spesifikk jobb 
      */
     public static function countByJob($jobId) {

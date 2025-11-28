@@ -8,6 +8,12 @@ require_once '../includes/autoload.php';
 // Sjekk innlogging og rolle 
 auth_check(['applicant']);
 
+//Innlogget bruker 
+$user      = Auth::user();
+$user_id   = $user['id'];
+$user_name = $user['name'] ?? 'Bruker';
+
+// Håndterer trekk søknad
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'])) {
 
     csrf_check();
@@ -24,10 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
         redirect('applicant.php', 'Søknaden ble ikke funnet.', 'danger'); 
     }
 
-    if ($application['applicant_id'] != Auth::id()) {
+    // Sjekk at innlogget søker eier søknaden 
+    if ($application['applicant_id'] != $user_id) {
         redirect('applicant.php', 'Du har ikke tillatelse til å trekke tilbake denne søknaden.', 'danger'); 
     }
 
+    // Blokker trekk på behandlet søknad 
     if ($application['status'] === 'Tilbud' || $application['status'] === 'Avslått') {
         redirect('applicant.php', 'Du kan ikke trekke tilbake en søknad som allerede er behandlet.', 'danger');
     }
@@ -41,39 +49,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
 
 }
 
-// Hent brukerinfo 
-$user_name = $_SESSION['user_name'] ?? 'Bruker';
-$user_id = Auth::id();
+/**
+ * Jobber som er tilgjengelige for denne søkeren
+ * Status = 'active', deadline ikke passert, søkeren har ikke søkt på dem
+ */
 
-// Hent data fra Models 
-$all_jobs = Job::getAll();
+$available_jobs = Job::getAvailableForApplicant($user_id);
+// Søknader til statistikk og "mine søknader 
 $my_applications = Application::getByApplicant($user_id);
-$recommended_jobs = array_slice($all_jobs, 0, 3);
+// Enkle anbefalte stillinger = topp 3 av tilgjengelige jobber. 
+$recommended_jobs = array_slice($available_jobs, 0, 3);
 
-// Hent antall uleste meldinger
-$unread_messages_count = Message::getUnreadCount($user_id);
-
-// Filtrer søknader med status 'Vurderes' 
-$pending_applications = array_filter($my_applications, function($app) {
-    return $app['status'] === 'Vurderes';
-});
-
-$accepted_applications = array_filter($my_applications, function($app) {
-    return $app['status'] === 'Tilbud';
-});
-
-$rejected_applications = array_filter($my_applications, function($app) {
-    return $app['status'] === 'Avslått';
-});
+$pending_applications  = Application::getByApplicantAndStatus($user_id, 'Vurderes');
+$accepted_applications = Application::getByApplicantAndStatus($user_id, 'Tilbud');
+$rejected_applications = Application::getByApplicantAndStatus($user_id, 'Avslått');
 
 // Beregn statistikk 
 $stats = [
-    'available_jobs'        => count($all_jobs),
+    'available_jobs'        => count($available_jobs),
     'my_applications'       => count($my_applications), 
     'pending'               => count($pending_applications),
     'accepted'              => count($accepted_applications),
     'rejected'              => count($rejected_applications),
-    'unread_messages'       => $unread_messages_count
+    'favorites'             => '0' // Placeholder for favoritter
 ];
 
 $status_badges = [
@@ -162,14 +160,9 @@ require_once '../includes/header.php';
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <div class="p-3 bg-danger bg-opacity-10 rounded position-relative">
-                                    <h3 class="text-danger mb-1"><?php echo $stats['unread_messages']; ?></h3>
-                                    <small class="text-muted">Uleste meldinger</small>
-                                    <?php if ($stats['unread_messages'] > 0): ?>
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                            <?php echo $stats['unread_messages']; ?>
-                                        </span>
-                                    <?php endif; ?>
+                                <div class="p-3 bg-info bg-opacity-10 rounded">
+                                    <h3 class="text-info mb-1"><?php echo $stats['favorites']; ?></h3>
+                                    <small class="text-muted">Favoritter</small>
                                 </div>
                             </div>
                         </div>
@@ -193,16 +186,6 @@ require_once '../includes/header.php';
                             $recent_applications = array_slice($my_applications, 0, 5);
                             foreach ($recent_applications as $application): 
                                 $badge_color = $status_badges[$application['status']] ?? 'secondary';
-                                
-                                // Sjekk om søknaden har uleste meldinger
-                                $app_messages = Message::getByApplication($application['id']);
-                                $has_unread = false;
-                                foreach ($app_messages as $msg) {
-                                    if ($msg['receiver_id'] == $user_id && $msg['is_read'] == 0) {
-                                        $has_unread = true;
-                                        break;
-                                    }
-                                }
                             ?>
                             <div class="border-bottom pb-3 mb-3">
                                 <div class="d-flex align-items-start">
@@ -242,15 +225,9 @@ require_once '../includes/header.php';
                                         </small>
                                         <div class="d-flex gap-2">
                                             <a href="../applications/view.php?id=<?php echo $application['id']; ?>" 
-                                               class="btn btn-outline-primary btn-sm position-relative">
+                                               class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye me-1"></i>
                                                 Se søknad
-                                                <?php if ($has_unread): ?>
-                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                        <i class="fas fa-envelope"></i>
-                                                        <span class="visually-hidden">Nye meldinger</span>
-                                                    </span>
-                                                <?php endif; ?>
                                             </a>
                                             
                                             <?php if ($application['status'] !== 'Tilbud' && $application['status'] !== 'Avslått'): ?>

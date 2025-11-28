@@ -2,13 +2,18 @@
 require_once '../includes/autoload.php';
 
 /**
- * Lar søkere søke på stillinger med CV og søknadsbrev.
+ * Lar søkere søke med søknadsbrev.
+ * Og eventuel vedlegg som allerede er lastet opp på profilsiden
  */
 
 // Sjekk innlogging
 auth_check(['applicant']);
 
-// Hent stilling
+// innlogget bruker
+$user       = Auth::user();
+$user_id    = $user['id'];
+
+// Hent stilling basert på ID i URL og kun tillat INT 
 $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$job_id) {
@@ -31,19 +36,26 @@ if (!empty($job['deadline']) && strtotime($job['deadline']) < time()) {
 }
 
 // Sjekk om bruker allerede har søkt
-if (Application::hasApplied($job_id, Auth::id())) {
+if (Application::hasApplied($job_id, $user_id)) {
     redirect('view.php?id=' . $job_id, 'Du har allerede søkt på denne stillingen', 'danger');
 }
 
 $cover_letter = '';
+$user_documents = Upload::getDocuments($user_id); 
 
 // Håndter søknadsinnsending
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
     $cover_letter = Validator::clean($_POST['cover_letter'] ?? '');
-    
-    // Validering
+
+    // Valgte eksisterende dokumenter (checkboxer)
+    $document_ids = $_POST['document_ids'] ?? [];
+    if (!is_array($document_ids)) {
+        $document_ids = [];
+    }
+
+    // Validering – kun søknadsbrev er påkrevd
     if (!Validator::required($cover_letter)) {
 
         show_error('Søknadsbrev er påkrevd.');
@@ -54,24 +66,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
-            // Opprett søknad
-            $application_data = [
-                'job_id'        => $job_id,
-                'applicant_id'  => Auth::id(),
-                'cover_letter'  => $cover_letter,
-                'cv_path'       => null
-            ];
-            
-            $application_id = Application::create($application_data);
-            
-            if ($application_id) {
-                // TODO: Send e-post til arbeidsgiver
-                redirect('../dashboard/applicant.php', 'Din søknad er sendt!', 'success');
-            } else {
-                show_error('Kunne ikke opprette søknad. Prøv igjen.');
+        // 2) Opprett selve søknaden (alltid, uansett vedlegg)
+        $application_data = [
+            'job_id'        => $job_id,
+            'applicant_id'  => $user_id,
+            'cover_letter'  => $cover_letter,
+            'cv_path'       => null // Bakoverkompatibilitet
+        ];
+
+        $application_id = Application::create($application_data);
+
+        if ($application_id) {
+
+            // Knytt alle valgte eksisterende dokumenter
+            if (!empty($document_ids)) {
+                foreach ($document_ids as $doc_id) {
+                    $doc_id = filter_var($doc_id, FILTER_VALIDATE_INT);
+                    if ($doc_id) {
+                        Upload::attachToApplication($doc_id, $application_id, $user_id);
+                    }
+                }
             }
+
+            // TODO: Send e-post til arbeidsgiver
+            redirect('../dashboard/applicant.php', 'Din søknad er sendt!', 'success');
+        } else {
+            show_error('Kunne ikke opprette søknad. Prøv igjen.');
         }
     }
+}
 
 $page_title = 'Søk på stilling';
 $body_class = 'bg-light';
@@ -118,7 +141,7 @@ include_once '../includes/header.php';
                                 <i class="fas fa-calendar text-primary me-2 mt-1"></i>
                                 <div>
                                     <small class="text-muted d-block">Søknadsfrist</small>
-                                    <strong><?php echo date('d.m.Y', strtotime($job['deadline'])); ?></strong>
+                                    <strong><?php echo format_date($job['deadline']); ?></strong>
                                 </div>
                             </div>
                         </div>
@@ -203,28 +226,43 @@ include_once '../includes/header.php';
                                 <span id="currentCount">0</span> / 100 tegn
                             </div>
                         </div>
-                        
-                        <!-- CV-opplasting -->
-                        <!--  <div class="mb-4">
-                            <label for="cv" class="form-label fw-bold">
-                                Last opp CV <span class="text-danger">*</span>
+
+                        <?php if (!empty($user_documents)): ?>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                Velg eksisterende dokumenter (valgfritt)
                             </label>
-                            <input 
-                                type="file" 
-                                class="form-control" 
-                                id="cv" 
-                                name="cv"
-                                accept=".pdf,.doc,.docx"
-                                required>
+                            <div class="list-group">
+                                <?php foreach ($user_documents as $doc): ?>
+                                    <label class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <input 
+                                                type="checkbox" 
+                                                name="document_ids[]" 
+                                                value="<?php echo Validator::sanitize($doc['id']); ?>" 
+                                                class="form-check-input me-2"
+                                            >
+                                            <span><?php echo Validator::sanitize($doc['original_filename']); ?></span><br>
+                                            <small class="text-muted">
+                                                <?php echo Validator::sanitize($doc['document_type']); ?> ·
+                                                <?php echo Upload::formatFileSize($doc['file_size']); ?> ·
+                                                <?php echo date('d.m.Y H:i', strtotime($doc['created_at'])); ?>
+                                            </small>
+                                        </div>
+                                        <a href="<?php echo APP_URL . '/' . ltrim(Validator::sanitize($doc['file_path']), '/'); ?>"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Vis
+                                        </a>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
                             <div class="form-text">
-                                <i class="fas fa-file-pdf me-1"></i>
-                                Tillatte formater: PDF, DOC, DOCX. Maksimal størrelse: 5MB.
+                                Du kan gjenbruke dokumenter du allerede har lastet opp på profilsiden (f.eks. CV, attester).
                             </div>
-                            <div class="invalid-feedback">
-                                Du må laste opp din CV.
-                            </div>
-                        </div>-->
-                        
+                        </div>
+                    <?php endif; ?>
                         <!-- Info-boks -->
                         <div class="alert alert-info border-info bg-light">
                             <h6 class="alert-heading">

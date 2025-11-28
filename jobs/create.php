@@ -8,22 +8,27 @@ require_once '../includes/autoload.php';
 // Sjekk at bruker er innlogget og er arbeidsgiver 
 auth_check(['employer', 'admin']);
 
+// Innlogget bruker 
+$user       = Auth::user();
+$user_id    = $user['id'];
+$company    = $user['name'] ?? 'Ukjent arbeidsgiver';
+
 // Standardverdier for felt brukes ved valideringsfeil 
-$title = '';
-$description = '';
-$requirements = '';;
-$location = '';
-$salary = '';
-$job_type = '';
-$subject = '';
-$education_level = '';
-$deadline = '';
+$title          = '';
+$description    = '';
+$requirements   = '';
+$location       = '';
+$salary         = '';
+$job_type       = '';
+$subject        = '';
+$education_level= '';
+$deadline       = '';
 $hours_per_week = '';
-$company = $_SESSION['user_name'] ?? 'Ukjent arbeidsgiver';
 
 // Håndter POST-request  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+
     $title          = Validator::clean($_POST['title']                ?? '');
     $description    = Validator::clean($_POST['description']          ?? '');
     $requirements   = Validator::clean($_POST['requirements']         ?? '');
@@ -36,6 +41,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hours_per_week = Validator::clean($_POST['hours_per_week']       ?? '');
     //TODO Lagre hours_per_week i databasen senere.
     
+    // Whitelist på select felter 
+    $allowed_job_types = ['Heltid', 'Deltid', 'Ekstrahjelp', 'Vikariat'];
+    if (!in_array($job_type, $allowed_job_types, true)) {
+        $job_type = '';
+    }
+
+    $allowed_subjects = ['Matematikk', 'Norsk', 'Engelsk', 'Naturfag', 'Samfunnsfag', 'Historie', 'Annet'];
+    if (!in_array($subject, $allowed_subjects, true)) {
+        $subject = '';
+    }
+
+    $allowed_education_levels = ['Barneskole', 'Ungdomsskole', 'Videregående', 'Høyere utdanning', 'Alle nivåer'];
+    if (!in_array($education_level, $allowed_education_levels, true)) {
+        $education_level = '';
+    }
+
 
     // Validering
     if (!Validator::required($title)        ||
@@ -63,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Opprett ny jobb
         $new_job = [
-            'employer_id'    => Auth::id(),
+            'employer_id'    => $user_id,
             'title'          => $title,
             'company'        => $company,
             'description'    => $description,
@@ -186,7 +207,8 @@ require_once '../includes/header.php';
                                 </label>
                                 <input type="date" class="form-control" id="deadline" name="deadline" 
                                        value="<?php echo Validator::sanitize($deadline) ?>"
-                                       min="<?php echo date('Y-m-d'); ?>" required>
+                                       min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>" required>
+                                       <!-- min settes til morgendagens dato for å hindre at bruker velger dagens eller tidligere dato -->
                             </div>
 
                             <!-- Job Description -->
