@@ -39,7 +39,7 @@ class Auth {
         $_SESSION['role']           = $user['role'];
         $_SESSION['logged_in_at']   = time();
     }
-
+    
     /**
      * Logg ut bruker
      */
