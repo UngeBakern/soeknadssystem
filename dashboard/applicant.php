@@ -8,12 +8,6 @@ require_once '../includes/autoload.php';
 // Sjekk innlogging og rolle 
 auth_check(['applicant']);
 
-//Innlogget bruker 
-$user      = Auth::user();
-$user_id   = $user['id'];
-$user_name = $user['name'] ?? 'Bruker';
-
-// Håndterer trekk søknad
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'])) {
 
     csrf_check();
@@ -30,12 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
         redirect('applicant.php', 'Søknaden ble ikke funnet.', 'danger'); 
     }
 
-    // Sjekk at innlogget søker eier søknaden 
-    if ($application['applicant_id'] != $user_id) {
+    if ($application['applicant_id'] != Auth::id()) {
         redirect('applicant.php', 'Du har ikke tillatelse til å trekke tilbake denne søknaden.', 'danger'); 
     }
 
-    // Blokker trekk på behandlet søknad 
     if ($application['status'] === 'Tilbud' || $application['status'] === 'Avslått') {
         redirect('applicant.php', 'Du kan ikke trekke tilbake en søknad som allerede er behandlet.', 'danger');
     }
@@ -49,13 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
 
 }
 
-/**
- * Jobber som er tilgjengelige for denne søkeren
- * Status = 'active', deadline ikke passert, søkeren har ikke søkt på dem
- */
+// Hent brukerinfo 
+$user_name = $_SESSION['user_name'] ?? 'Bruker';
+$user_id = Auth::id();
 
-$available_jobs = Job::getAvailableForApplicant($user_id);
-// Søknader til statistikk og "mine søknader 
+// Hent data fra Models 
+$all_jobs = Job::getAll();
 $my_applications = Application::getByApplicant($user_id);
 $recommended_jobs = array_slice($all_jobs, 0, 3);
 
@@ -71,13 +62,13 @@ $accepted_applications = array_filter($my_applications, function($app) {
     return $app['status'] === 'Tilbud';
 });
 
-$pending_applications  = Application::getByApplicantAndStatus($user_id, 'Vurderes');
-$accepted_applications = Application::getByApplicantAndStatus($user_id, 'Tilbud');
-$rejected_applications = Application::getByApplicantAndStatus($user_id, 'Avslått');
+$rejected_applications = array_filter($my_applications, function($app) {
+    return $app['status'] === 'Avslått';
+});
 
 // Beregn statistikk 
 $stats = [
-    'available_jobs'        => count($available_jobs),
+    'available_jobs'        => count($all_jobs),
     'my_applications'       => count($my_applications), 
     'pending'               => count($pending_applications),
     'accepted'              => count($accepted_applications),

@@ -1,25 +1,14 @@
 <?php
 require_once '../includes/autoload.php';
 
-/*
- * Registreringsside
- */
-
 // Redirect if already logged in
 if (Auth::isLoggedIn()) {
-
-    $user = Auth::user();
-    $role = $user['role'] ?? 'applicant';
-
-
-    $redirect_url = ($role === 'employer' || $role === 'admin')
-        ? '../dashboard/employer.php'
-        : '../dashboard/applicant.php';
-        
+    $redirect_url = Auth::hasRole('employer') 
+    ? '../dashboard/employer.php' 
+    : '../dashboard/applicant.php';
     redirect($redirect_url, 'Du er allerede logget inn.', 'info');
 }
 
-// Forhåndsvalg av rolle i select skjema
 $role = $_GET['type'] ?? 'applicant';
 
 // Behold verdier ved feil
@@ -96,13 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Auth::login($user);
                 csrf_regenerate();
             }
-
-            $role = $user['role'] ?? 'applicant';
-
+            
             // Redirect til dashboard
-            $redirect_url = ($role === 'employer' || $role === 'admin')
-                ? '../dashboard/employer.php'
-                : '../dashboard/applicant.php';
+            $redirect_url = $role === 'employer' 
+            ? '../dashboard/employer.php' 
+            : '../dashboard/applicant.php';
 
             redirect($redirect_url, 'Velkommen! Din konto er opprettet.', 'success');
 

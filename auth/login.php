@@ -7,18 +7,9 @@ require_once '../includes/autoload.php';
 
 // Redirect hvis logget inn 
 if (Auth::isLoggedIn()) {
-
-    $user = Auth::user(); 
-    $role = $user['role'] ?? 'applicant';
-
-    if ($role === 'employer' || $role === 'admin') {
-
-        $redirect_url = '../dashboard/employer.php';
-
-    } else {
-
-        $redirect_url = '../dashboard/applicant.php';
-    }
+    $redirect_url = Auth::hasRole('employer') 
+    ? '../dashboard/employer.php' 
+    : '../dashboard/applicant.php';
     
     redirect($redirect_url, 'Du er allerede logget inn.', 'info');
 }
@@ -50,27 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Auth::login($user);
             csrf_regenerate();
 
-            $user = Auth::user(); 
-            $role = $user['role'] ?? 'applicant';
+            $redirect_url = ($user['role'] === 'employer') 
+            ? '../dashboard/employer.php' 
+            : '../dashboard/applicant.php';
 
-        if ($role === 'employer' || $role === 'admin') {
+            redirect($redirect_url, 'Velkommen!', 'success');
 
-            $redirect_url = '../dashboard/employer.php';
-
-        } else {
-
-            $redirect_url = '../dashboard/applicant.php';
-        }
-    
-        redirect($redirect_url, 'Velkommen!', 'success');
-        
-       
         } else {
 
             show_error('Ugyldig e-post eller passord');
         }
     }
 }
+
 
 ?>
 

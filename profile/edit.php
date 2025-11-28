@@ -9,9 +9,11 @@ require_once '../includes/autoload.php';
 // Sjekk om bruker er innlogget
 auth_check();
 
-// Hent bruker-ID fra session for å så bruke den id'en til å hente resten fra databasen
-$user_id = Auth::id(); 
-$user    = User::findById($user_id); 
+// Hent bruker-ID fra session
+$user_id = Auth::id();
+
+// Henter bruker fra databasen
+$user = User::findById($user_id);
 
 if (!$user) {
     redirect('../auth/logout.php', 'Bruker ikke funnet. Logg inn på nytt', 'danger');

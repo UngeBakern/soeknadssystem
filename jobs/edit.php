@@ -5,13 +5,8 @@ require_once '../includes/autoload.php';
  * Rediger en eksisterende stilling
  */
 
-// Må være arbeidsgiver eller admin
+// Sjekk at bruker er innlogget
 auth_check(['employer', 'admin']);
-
-// Innlogget bruker 
-$user      = Auth::user();
-$user_id   = $user['id'];
-$user_role = $user['role'];
 
 // Hent jobb-ID fra URL
 $job_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -28,12 +23,7 @@ if (!$job) {
 }
 
 // Sjekk at bruker eier stillingen (eller er admin)
-if  (
-    !(
-        ($user_role === 'admin') || 
-        ($user_role === 'employer' && $job['employer_id'] == $user_id)
-    )
-) { 
+if ($job['employer_id'] != Auth::id() && !has_role('admin')) {
     redirect('view.php?id=' . $job_id, 'Du har ikke tilgang til å redigere denne stillingen.', 'danger');
 }
 
@@ -53,26 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subject        = Validator::clean($_POST['subject']          ?? '');
     $education_level= Validator::clean($_POST['education_level']  ?? '');
 
-    // Whitelist for selectfelter 
-
     $allowed_status = ['active', 'inactive'];
-    if (!in_array($status, $allowed_status, true)) {
+    if (!in_array($status, $allowed_status)) {
         $status = 'active';
-    }
-
-    $allowed_job_types = ['Heltid', 'Deltid', 'Ekstrahjelp', 'Vikariat'];
-    if (!in_array($job_type, $allowed_job_types, true)) {
-        $job_type = '';
-    }
-
-    $allowed_subjects = ['Matematikk', 'Norsk', 'Engelsk', 'Naturfag', 'Samfunnsfag', 'Historie', 'Annet'];
-    if (!in_array($subject, $allowed_subjects, true)) {
-        $subject = '';
-    }
-
-    $allowed_education_levels = ['Barneskole', 'Ungdomsskole', 'Videregående', 'Høyere utdanning', 'Alle nivåer'];
-    if (!in_array($education_level, $allowed_education_levels, true)) {
-        $education_level = '';
     }
 
     // Validering
@@ -206,8 +179,7 @@ require_once '../includes/header.php';
                                 <label for="deadline" class="form-label">Søknadsfrist *</label>
                                 <input type="date" class="form-control" id="deadline" name="deadline" 
                                        value="<?php echo Validator::sanitize($job['deadline'] ?? ''); ?>"
-                                       min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>" required>
-                                       <!-- min settes til morgendagens dato for å hindre at bruker velger dagens eller tidligere dato -->
+                                       min="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                         </div>
 
@@ -228,27 +200,11 @@ require_once '../includes/header.php';
                         <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="subject" class="form-label">Fag/område</label>
-                            <select class="form-select" id="subject" name="subject">
-                            <option value="">Velg fag</option>
-                            <option value="Matematikk"   <?= (($job['subject'] ?? '') === 'Matematikk')   ? 'selected' : '' ?>>Matematikk</option>
-                            <option value="Norsk"        <?= (($job['subject'] ?? '') === 'Norsk')        ? 'selected' : '' ?>>Norsk</option>
-                            <option value="Engelsk"      <?= (($job['subject'] ?? '') === 'Engelsk')      ? 'selected' : '' ?>>Engelsk</option>
-                            <option value="Naturfag"     <?= (($job['subject'] ?? '') === 'Naturfag')     ? 'selected' : '' ?>>Naturfag</option>
-                            <option value="Samfunnsfag"  <?= (($job['subject'] ?? '') === 'Samfunnsfag')  ? 'selected' : '' ?>>Samfunnsfag</option>
-                            <option value="Historie"     <?= (($job['subject'] ?? '') === 'Historie')     ? 'selected' : '' ?>>Historie</option>
-                            <option value="Annet"        <?= (($job['subject'] ?? '') === 'Annet')        ? 'selected' : '' ?>>Annet</option>
-                        </select>
+                            <input type="text" class="form-control" id="subject" name="subject" value="<?php echo Validator::sanitize($job['subject'] ?? ''); ?>">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="education_level" class="form-label">Utdanningsnivå</label>
-                            <select class="form-select" id="education_level" name="education_level">
-                            <option value="">Velg nivå</option>
-                            <option value="Barneskole"        <?= (($job['education_level'] ?? '') === 'Barneskole')        ? 'selected' : '' ?>>Barneskole</option>
-                            <option value="Ungdomsskole"      <?= (($job['education_level'] ?? '') === 'Ungdomsskole')      ? 'selected' : '' ?>>Ungdomsskole</option>
-                            <option value="Videregående"      <?= (($job['education_level'] ?? '') === 'Videregående')      ? 'selected' : '' ?>>Videregående</option>
-                            <option value="Høyere utdanning"  <?= (($job['education_level'] ?? '') === 'Høyere utdanning')  ? 'selected' : '' ?>>Høyere utdanning</option>
-                            <option value="Alle nivåer"       <?= (($job['education_level'] ?? '') === 'Alle nivåer')       ? 'selected' : '' ?>>Alle nivåer</option>
-                        </select>
+                            <input type="text" class="form-control" id="education_level" name="education_level" value="<?php echo Validator::sanitize($job['education_level'] ?? ''); ?>">
                         </div>
                         </div>
 

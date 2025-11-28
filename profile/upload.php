@@ -82,7 +82,7 @@ include_once '../includes/header.php';
                     </div>
 
                     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        <?php echo csrf_field(); ?>
+                        
                         <div class="mb-3">
                             <label for="document_type" class="form-label">Dokumenttype</label>
                             <select class="form-select" id="document_type" name="document_type" required>
@@ -141,14 +141,8 @@ include_once '../includes/header.php';
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-file-<?php echo $doc['file_type'] === 'pdf' ? 'pdf' : 'alt'; ?> fa-2x text-primary me-3"></i>
-                                                <div>
-                                                <h6 class="mb-0">
-                                                <a href="../<?php echo Validator::sanitize($doc['file_path']); ?>" 
-                                                target="_blank" 
-                                                class="text-decoration-none text-dark fw-semibold">
-                                                <?php echo Validator::sanitize($doc['original_filename']); ?>
-                                                </a>
-                                            </h6>
+                                        <div>
+                                            <h6 class="mb-0"><?php echo Validator::sanitize($doc['original_filename']); ?></h6>
                                             <small class="text-muted">
                                                 <?php 
                                                 $types = [
@@ -165,6 +159,12 @@ include_once '../includes/header.php';
                                         </div>
                                     </div>
                                     <div class="btn-group" role="group">
+                                        <a href="../<?php echo Validator::sanitize($doc['file_path']); ?>" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           target="_blank"
+                                           title="Åpne dokument">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                         <form method="POST" style="display: inline;" 
                                               onsubmit="return confirm('Er du sikker på at du vil slette dette dokumentet?');">
                                               <?php echo csrf_field(); ?>
@@ -172,7 +172,7 @@ include_once '../includes/header.php';
                                             <button type="submit" 
                                                     name="delete" 
                                                     class="btn btn-sm btn-outline-danger"
-                                                    title="Slett dokument">Slett 
+                                                    title="Slett dokument">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

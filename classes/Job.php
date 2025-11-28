@@ -201,45 +201,6 @@ class Job {
             return [];
         }
     }
-
-    /**
-     * Hent tilgjengelige stillinger for en søker (ikke søkt på enda) 
-     */
-
-    public static function getAvailableForApplicant($applicant_id) {
-        
-    $pdo = Database::connect();
-
-    try {
-        $stmt = $pdo->prepare("
-            SELECT 
-                j.*,
-                u.name AS employer_name
-            FROM jobs j
-            LEFT JOIN users u ON j.employer_id = u.id
-            WHERE j.status = 'active'
-              AND (
-                  j.deadline IS NULL
-                  OR j.deadline = ''
-                  OR j.deadline >= CURDATE()
-              )
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM applications a
-                  WHERE a.job_id = j.id
-                    AND a.applicant_id = ?
-              )
-            ORDER BY j.created_at DESC
-        ");
-
-        $stmt->execute([$applicant_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    } catch (Exception $e) {
-        error_log("Feil ved henting av tilgjengelige stillinger for søker: " . $e->getMessage());
-        return [];
     }
-}
-}
 
 
