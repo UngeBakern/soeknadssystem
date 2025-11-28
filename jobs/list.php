@@ -6,8 +6,27 @@ require_once '../includes/autoload.php';
  * Liste over ledige stillinger
  */
 
-// Hent alle stillinger
-$jobs = Job::getAll(['status' => 'active']);
+// Default for ikke innloggede brukere
+$user      = null; 
+$user_id   = null;
+$user_role = null;
+
+// Hvis innlogget: hent bruker
+if (Auth::isLoggedIn()) {
+    $user       = Auth::user();
+    $user_id    = $user['id'];
+    $user_role  = $user['role'];
+}
+
+//Hvis innlogget søker: Filtrer bort jobber vedkommende allerede har søkt på.
+if ($user && $user_role === 'applicant') {
+
+    $jobs = Job::getAvailableForApplicant($user_id);
+
+} else {
+
+    $jobs = Job::getAll(['status' => 'active']);
+}
 
 // Sett sidevariabler
 $page_title = 'Ledige Stillinger';
@@ -15,7 +34,6 @@ $body_class = 'bg-light';
 
 include_once '../includes/header.php';
 ?>
-
 
     <div class="container py-5">
         <div class="row justify-content-center">

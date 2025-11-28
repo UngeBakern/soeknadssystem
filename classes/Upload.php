@@ -30,6 +30,21 @@ class Upload {
             return ['success' => false, 'message' => 'For mange opplastinger. Prøv igjen senere.'];
         }
 
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) as total_count
+            FROM documents
+            WHERE user_id = ?
+        ");
+        $stmt->execute([$user_id]);
+        $total_docs = $stmt->fetch()['total_count'];
+
+        if ($total_docs >= 5) {
+            return [
+                'success' => false, 
+                'message' => 'Du har nådd maksgrensen på 5 opplastede dokumenter. Vennligst slett et dokument før du laster opp et nytt.'
+            ];
+        }
+
         // Fjerner farlige tegn fra originalt filnavn   
         $original_name = basename($file['name']);// Fjerner path
         $original_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', $original_name); 
@@ -70,9 +85,10 @@ class Upload {
             
             if ($document_id) {
                 return [
-                    'success' => true, 
-                    'message' => 'Dokumentet er lastet opp!',
-                    'document_id' => $document_id
+                    'success'       => true, 
+                    'message'       => 'Dokumentet er lastet opp!',
+                    'document_id'   => $document_id,
+                    'file_path'     => $targetWebPath
                 ];
             } else {
                 // Slett filen hvis databaseinnsetting mislykkes
@@ -245,6 +261,56 @@ class Upload {
         }
         return round($bytes, 2) . ' ' . $units[$i];
     }
+
+    /** 
+     * Knytt et dokument til en søknad
+     */
+    public static function attachToApplication($document_id, $application_id, $user_id)
+    {
+        $pdo = Database::connect();
+
+            // Sjekk at dokumentet tilhører brukeren
+            $stmt = $pdo->prepare("
+                SELECT id
+                FROM documents 
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmt->execute([$document_id, $user_id]);
+            
+            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+                return false;
+            }
+
+            // Opprett kobling i application_documents
+            $stmt = $pdo->prepare ("
+                INSERT INTO application_documents (application_id, document_id)
+                VALUES (?, ?)
+            ");
+
+            return $stmt->execute([$application_id, $document_id]);
+
+    }
+
+    /** 
+     * Hent dokumenter knyttet til en søknad
+     */
+    public static function getDocumentsByApplication($application_id) 
+    {
+        $pdo = Database::connect();
+
+        $stmt = $pdo->prepare("
+            SELECT d.*
+            FROM application_documents ad
+            JOIN documents d ON ad.document_id = d.id 
+            WHERE ad.application_id = ? 
+            ORDER BY d.created_at DESC
+        ");
+        $stmt->execute([$application_id]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
 }
 
 ?>
