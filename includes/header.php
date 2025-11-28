@@ -66,7 +66,14 @@
                                 Logg inn
                             </a>
                         </li>
-
+                        
+                        <!-- Registrer (kun for utloggede) -->
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary text-white ms-2 px-3" href="<?php echo BASE_URL; ?>/auth/register.php">
+                                <i class="fas fa-user-plus me-1"></i>
+                                Registrer
+                            </a>
+                        </li>
                     <?php endif; ?>
                 </ul>
             </div>

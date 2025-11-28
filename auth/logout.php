@@ -1,25 +1,21 @@
 <?php
 require_once '../includes/autoload.php';
 
-/*
- * Logg ut
- */
-
 // Sjekk at bruker er logget inn
-if (!Auth::isLoggedIn()) {
+if (!is_logged_in()) {
     redirect('../auth/login.php', 'Du er ikke logget inn.', 'info');
 }
 
 // Kun tillat POST-requests 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('../index.php', 'Ugyldig forespørsel.', 'danger');
+    csrf_check('logout.php');
+
 }
 
-// CSRF-sjekk for logout-forespørselen
-csrf_check('../index.php');
+csrf_check('../dashboard/' . $_SESSION['role'] . '.php');
 
-// Logger ut bruker (tømmer session variabler, cookie)
+// Destroy session and redirect
 Auth::logout();
 
-redirect('../auth/login.php', 'Du er nå logget ut. Mi sees!', 'success');
+redirect('../index.php', 'Du er nå logget ut. Mi sees', 'success');
 ?>
