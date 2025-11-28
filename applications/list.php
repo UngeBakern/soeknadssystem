@@ -26,8 +26,12 @@ if (has_role('employer') && $job['employer_id'] != Auth::id()) {
 // Hent alle søknader for denne jobben
 $applications = Application::getByJobId($job_id);
 
-// Hent bruker-ID for å sjekke uleste meldinger
-$user_id = Auth::id();
+$status_badges = [
+    'Mottatt'   => 'info',
+    'Vurderes'  => 'warning',
+    'Tilbud'    => 'success',
+    'Avslått'   => 'danger'
+];
 
 $page_title = 'Søknader - ' . Validator::sanitize($job['title']);
 $body_class = 'bg-light';
@@ -115,16 +119,6 @@ require_once '../includes/header.php';
                                             'Avslått'   => 'danger'
                                         ];
                                         $badge_color = $status_badges[$app['status']] ?? 'secondary';
-                                        
-                                        // Sjekk om søknaden har uleste meldinger
-                                        $messages = Message::getByApplication($app['id']);
-                                        $has_unread = false;
-                                        foreach ($messages as $msg) {
-                                            if ($msg['receiver_id'] == $user_id && $msg['is_read'] == 0) {
-                                                $has_unread = true;
-                                                break;
-                                            }
-                                        }
                                         ?>
                                         <tr>
                                             <td>
@@ -146,15 +140,9 @@ require_once '../includes/header.php';
                                             </td>
                                             <td>
                                                 <a href="view.php?id=<?php echo $app['id']; ?>" 
-                                                   class="btn btn-sm btn-primary position-relative">
+                                                   class="btn btn-sm btn-primary">
                                                     <i class="fas fa-eye me-1"></i>
                                                     Se søknad
-                                                    <?php if ($has_unread): ?>
-                                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                            <i class="fas fa-envelope"></i>
-                                                            <span class="visually-hidden">Nye meldinger</span>
-                                                        </span>
-                                                    <?php endif; ?>
                                                 </a>
                                             </td>
                                         </tr>

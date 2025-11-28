@@ -20,17 +20,13 @@ $application_counts = Application::countByJobs($job_ids);
 // Total antall søknader til bruk i statistikk 
 $total_applications = array_sum($application_counts);
 
-// Hent antall uleste meldinger
-$unread_messages_count = Message::getUnreadCount($user_id);
-
 // Beregn statistikk
 $stats = [
     'active_jobs' => count($active_jobs),
     'archived_jobs' => count($archived_jobs),
     'total_applications' => $total_applications,
-    'new_applications' => 0,
-    'pending' => 0,
-    'unread_messages' => $unread_messages_count
+    'new_applications'   => 0,
+    'pending'            => 0
 ];
 
 // Sett sidevariabler 
@@ -89,14 +85,9 @@ require_once '../includes/header.php';
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <div class="p-3 bg-danger bg-opacity-10 rounded position-relative">
-                                <h3 class="text-danger mb-1"><?php echo $stats['unread_messages']; ?></h3>
-                                <small class="text-muted">Uleste meldinger</small>
-                                <?php if ($stats['unread_messages'] > 0): ?>
-                                    <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                                        <span class="visually-hidden">Nye meldinger</span>
-                                    </span>
-                                <?php endif; ?>
+                            <div class="p-3 bg-warning bg-opacity-10 rounded">
+                                <h3 class="text-warning mb-1"><?php echo $stats['pending']; ?></h3>
+                                <small class="text-muted">Under vurdering</small>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
@@ -142,19 +133,6 @@ require_once '../includes/header.php';
                                     <?php foreach ($active_jobs as $job): ?>
                                         <?php 
                                         $application_count = Application::countByJob($job['id']);
-                                        
-                                        // Sjekk om jobben har søknader med uleste meldinger
-                                        $applications_for_job = Application::getByJobId($job['id']);
-                                        $has_unread_messages = false;
-                                        foreach ($applications_for_job as $app) {
-                                            $messages = Message::getByApplication($app['id']);
-                                            foreach ($messages as $msg) {
-                                                if ($msg['receiver_id'] == $user_id && $msg['is_read'] == 0) {
-                                                    $has_unread_messages = true;
-                                                    break 2;
-                                                }
-                                            }
-                                        }
                                         ?>
                                         <tr>
                                             <td>
@@ -169,20 +147,10 @@ require_once '../includes/header.php';
                                                 <span class="badge bg-success">Aktiv</span>
                                             </td>
                                             <td>
-                                                <?php if ($application_count > 0): ?>
-                                                    <a href="../applications/list.php?job_id=<?php echo $job['id']; ?>" 
-                                                       class="badge bg-primary text-decoration-none position-relative">
-                                                        <?php echo $application_count; ?> søknad<?php echo $application_count !== 1 ? 'er' : ''; ?>
-                                                        <?php if ($has_unread_messages): ?>
-                                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                                <i class="fas fa-envelope"></i>
-                                                                <span class="visually-hidden">Nye meldinger</span>
-                                                            </span>
-                                                        <?php endif; ?>
-                                                    </a>
-                                                <?php else: ?>
-                                                    <span class="badge bg-secondary">0 søknader</span>
-                                                <?php endif; ?>
+                                                <a href="../applications/list.php?job_id=<?php echo $job['id']; ?>" 
+                                                class="badge <?php echo $application_count > 0 ? 'bg-secondary' : 'bg-light text-dark'; ?> text-decoration-none">
+                                                <?php echo $application_count; ?> søknad<?php echo $application_count !== 1 ? 'er' : ''; ?>
+                                                </a>
                                             </td>
                                             <td class="text-end">
                                                 <div class="d-inline-flex align-items-center gap-2">
