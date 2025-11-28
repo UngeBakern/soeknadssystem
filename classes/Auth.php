@@ -48,13 +48,11 @@ class Auth {
         // Tøm session data
         $_SESSION = [];
 
-        // Ødelegg cookie 
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
+        // Regenerer session-ID
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
         }
         
-        // Ødlegg session
-        session_destroy();
     }
 
     /**
@@ -105,10 +103,10 @@ class Auth {
         }
 
         return [
-            'id'    => $_SESSION    ['user_id'], 
-            'name'  => $_SESSION    ['user_name']   ?? '',
+            'id'     => $_SESSION    ['user_id'], 
+            'name'   => $_SESSION    ['user_name']   ?? '',
             'email'  => $_SESSION   ['user_email']  ?? '',
-            'role'  => $_SESSION    ['role']        ?? '',
+            'role'   => $_SESSION    ['role']        ?? '',
         ];
     }
 

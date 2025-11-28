@@ -1,13 +1,17 @@
 <?php
 require_once '../includes/autoload.php';
 
-// Dashboard for arbeidsgiver
+/* 
+ * Dashboard for arbeidsgiver
+ */
+
 // Autentisering og tilgangskontroll
 auth_check(['employer', 'admin']);
 
-// Hent brukerdata 
-$user_name = $_SESSION['user_name'] ?? 'Arbeidsgiver';
-$user_id = Auth::id();
+// Innlogget bruker
+$user      = Auth::user();
+$user_id   = $user['id'];
+$user_name = $user['name'] ?? 'Arbeidsgiver';
 
 // Hent jobber opprettet av arbeidsgiveren man er innlogget som
 $active_jobs = Job::getByEmployerId($user_id);
@@ -25,8 +29,8 @@ $unread_messages_count = Message::getUnreadCount($user_id);
 
 // Beregn statistikk
 $stats = [
-    'active_jobs' => count($active_jobs),
-    'archived_jobs' => count($archived_jobs),
+    'active_jobs'        => count($active_jobs),
+    'archived_jobs'      => count($archived_jobs),
     'total_applications' => $total_applications,
     'new_applications' => 0,
     'pending' => 0,
@@ -164,7 +168,7 @@ require_once '../includes/header.php';
                                                 </a>
                                             </td>
                                             <td><?php echo Validator::sanitize($job['location']); ?></td>
-                                            <td><?php echo date('d.m.Y', strtotime($job['created_at'])); ?></td>
+                                            <td><?php echo format_date($job['created_at']); ?></td>
                                             <td>
                                                 <span class="badge bg-success">Aktiv</span>
                                             </td>
@@ -258,19 +262,14 @@ require_once '../includes/header.php';
                                         </a>
                                     </td>
                                     <td><?php echo Validator::sanitize($job['location']); ?></td>
-                                    <td><?php echo date('d.m.Y', strtotime($job['created_at'])); ?></td>
+                                    <td><?php echo format_date($job['created_at']); ?></td>
                                     <td>
                                         <span class="badge bg-secondary">Inaktiv</span>
                                     </td>
                                     <td>
-                                        <?php if ($application_count > 0): ?>
                                             <a href="../applications/list.php?job_id=<?php echo $job['id']; ?>" 
-                                               class="badge bg-secondary text-decoration-none">
-                                                <?php echo $application_count; ?> søknad<?php echo $application_count !== 1 ? 'er' : ''; ?>
+                                               class="badge <?php echo $application_count > 0 ? 'bg-primary' : 'bg-secondary'; ?> text-decoration-none"><?php echo $application_count; ?> søknad<?php echo $application_count !== 1 ? 'er' : ''; ?>
                                             </a>
-                                        <?php else: ?>
-                                            <span class="badge bg-light text-dark">0 søknader</span>
-                                        <?php endif; ?>
                                     </td>
                                     <td class="text-end">
                                     <div class="d-inline-flex align-items-center gap-2">

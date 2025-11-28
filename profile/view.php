@@ -11,18 +11,13 @@ auth_check();
 
 // Hent full brukerdata fra database
 $user_id = Auth::id();
-
-$user = User::findById($user_id);
+$user    = User::findById($user_id);
 
 if (!$user) {
     redirect('../auth/logout.php', 'Bruker ikke funnet. Logg inn på nytt.', 'danger');
 }
-
-// Beregn enkelte variabler for visning
-$type_label         =   $user['role'] === 'employer' ? 'Arbeidsgiver' : 'Søker';
-$user['phone']      =   $user['phone']      ?? 'Ikke oppgitt';
-$user['birthdate']  =   $user['birthdate']  ?? 'Ikke oppgitt';
-$user['address']    =   $user['address']    ?? 'Ikke oppgitt';
+// Label for rolle 
+$type_label = ($user['role'] ?? 'applicant') === 'employer' ? 'Arbeidsgiver' : 'Søker';
 
 //Sidevariabler 
 $page_title = 'Min profil';
@@ -30,8 +25,6 @@ $body_class = 'bg-light';
 
 include_once '../includes/header.php';
 ?>
-
-
 
     <!-- Page Header -->
     <div class="container py-5">
@@ -41,7 +34,8 @@ include_once '../includes/header.php';
                 <div class="mb-4 text-center">
                     <h1 class="h2 mb-2">Min profil</h1>
                     <p class="text-muted">Her finner du din brukerinfo</p>
-                    <img src="https://ui-avatars.com/api/?name=Demo+Bruker&background=ececec&color=333&size=256" alt="Profilbilde" class="profile-avatar mb-3 shadow-sm rounded-circle">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Bruker'); ?>&background=ececec&color=333&size=256" alt="Profilbilde" 
+                    class="profile-avatar mb-3 shadow-sm rounded-circle">
                 </div>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
@@ -68,27 +62,8 @@ include_once '../includes/header.php';
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Brukertype</span>
-                                <span class="badge bg-primary"><?php echo  Validator::sanitize($type_label); ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>Varslinger:</span>
-                                <form method="post" action="toggle_notifications.php" class="m-0 d-flex gap-3 align-items-center">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="notify_email" id="notify_email" value="1" <?php echo (isset($_SESSION['notify_email']) && $_SESSION['notify_email']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="notify_email">
-                                            <i class="fas fa-envelope me-1"></i> E-post
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="notify_sms" id="notify_sms" value="1" <?php echo (isset($_SESSION['notify_sms']) && $_SESSION['notify_sms']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="notify_sms">
-                                            <i class="fas fa-mobile-alt me-1"></i> Mobil
-                                        </label>
-                                    </div>
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                        Lagre
-                                    </button>
-                                </form>
+                                <span class="badge bg-primary"><?php echo  Validator::sanitize($type_label); ?>
+                            </span>
                             </li>
                         </ul>
                         <div class="d-grid gap-2">

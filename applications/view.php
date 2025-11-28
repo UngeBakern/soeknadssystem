@@ -1,8 +1,17 @@
 <?php
 require_once '../includes/autoload.php';
 
+/*
+ * Vis søknad (Søker / Arbeidsgiver eller Admin)
+ */
+
 // Sjekk innlogging
-auth_check(['applicant', 'employer']);
+auth_check(['applicant', 'employer', 'admin']);
+
+//Hent innlogget bruker 
+$user      = Auth::user();
+$user_id   = $user['id'];
+$user_role = $user['role'];
 
 // Hent søknads-ID
 $application_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -18,11 +27,20 @@ if (!$application) {
     redirect('../dashboard/applicant.php', 'Søknaden finnes ikke.', 'danger');
 }
 
-// Sikkerhet: Sjekk at bruker har tilgang
-$is_applicant = (has_role('applicant') && $application['applicant_id'] == Auth::id());
-$is_employer = (has_role('employer') && $application['employer_id'] == Auth::id());
+/*
+ * Tilgangssjekk - søknad
+ * admin: alltid tilgang
+ * søker: kun egne søknader
+ * employer: kun søknader til egne jobber 
+ */
 
-if (!$is_applicant && !$is_employer && !has_role('admin')) {
+if (
+    !(
+        ($user_role === 'admin') ||
+        ($user_role === 'applicant' && $application['applicant_id'] == $user_id) ||
+        ($user_role === 'employer'  && $application['employer_id']  == $user_id)
+    )
+) {
     redirect('../dashboard/applicant.php', 'Du har ikke tilgang til denne søknaden.', 'danger');
 }
 
@@ -57,7 +75,6 @@ $body_class = 'bg-light';
 require_once '../includes/header.php';
 ?>
 
-
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -80,15 +97,6 @@ require_once '../includes/header.php';
                             <i class="fas fa-file-alt text-primary me-2"></i>
                             Søknadsdetaljer
                         </h4>
-                        <?php 
-                        $status_badges = [
-                            'Mottatt'   => 'info',
-                            'Vurderes'  => 'warning',
-                            'Tilbud'    => 'success',
-                            'Avslått'   => 'danger'
-                        ];
-                        $badge_color = $status_badges[$application['status']] ?? 'secondary';
-                        ?>
                         <span class="badge bg-<?php echo $badge_color; ?> fs-6">
                             <?php echo Validator::sanitize($application['status']); ?>
                         </span>
@@ -153,29 +161,50 @@ require_once '../includes/header.php';
                         </div>
                     </div>
 
-                    <!-- CV -->
+                    <!-- CV / Vedlegg -->
                     <div class="mb-4">
                         <h5 class="mb-3">
                             <i class="fas fa-file-pdf text-primary me-2"></i>
                             CV / Vedlegg
                         </h5>
-                        <?php if (!empty($application['cv_path'])): ?>
+                        <?php if (!empty($attached_documents)): ?>
+                            <ul class="list-group">
+                                <?php foreach ($attached_documents as $doc): ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong><?php echo Validator::sanitize($doc['original_filename']); ?></strong><br>
+                                            <small class="text-muted">
+                                                Type: <?php echo Validator::sanitize($doc['document_type']); ?>,
+                                                Størrelse: <?php echo Upload::formatFileSize($doc['file_size']); ?>
+                                            </small>
+                                        </div>
+                                        <a href="<?php echo APP_URL . '/' . Validator::sanitize($doc['file_path']); ?>"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i>
+                                            Åpne
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                                <?php elseif (!empty($application['cv_path'])): ?>
+                            <!-- Fallback for gamle søknader som bare bruker cv_path -->
                             <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
                                 <div>
                                     <i class="fas fa-file-pdf text-danger me-2 fs-4"></i>
                                     <span><?php echo Validator::sanitize(basename($application['cv_path'])); ?></span>
                                 </div>
-                                <a href="<?php echo Validator::sanitize($application['cv_path']); ?>" 
-                                   target="_blank"
-                                   class="btn btn-sm btn-primary">
+                                <a href="<?php echo APP_URL . '/' . Validator::sanitize($application['cv_path']); ?>" 
+                                target="_blank"
+                                class="btn btn-sm btn-primary">
                                     <i class="fas fa-download me-1"></i>
                                     Last ned
                                 </a>
-                            </div>
-                        <?php else: ?>
-                            <p class="text-muted">Ingen CV lastet opp.</p>
-                        <?php endif; ?>
-                    </div>
+                                </div>
+                                <?php else: ?>
+                                    <p class="text-muted">Ingen vedlegg.</p>
+                                    <?php endif; ?>
+                                </div>
 
                     <!-- Actions for employer -->
                     <?php if ($is_employer && $application['status'] !== 'Avslått' && $application['status'] !== 'Tilbud'): ?>

@@ -1,8 +1,13 @@
 <?php
 require_once '../includes/autoload.php';
 
-// Sjekk innlogging
+// Sjekker innlogging og tilganger
 auth_check(['employer', 'admin']);
+
+// Innlogget bruker
+$user      = Auth::user();
+$user_id   = $user['id'];
+$user_role = $user['role'];
 
 // Hent job_id
 $job_id = filter_input(INPUT_GET, 'job_id', FILTER_VALIDATE_INT);
@@ -19,7 +24,12 @@ if (!$job) {
 }
 
 // Sjekk at arbeidsgiver eier jobben
-if (has_role('employer') && $job['employer_id'] != Auth::id()) {
+if (
+    !(
+        ($user_role === 'admin') || 
+        ($user_role === 'employer' && $job['employer_id'] == $user_id)
+    )
+) {
     redirect('../dashboard/employer.php', 'Ingen tilgang.', 'danger');
 }
 
@@ -108,12 +118,6 @@ require_once '../includes/header.php';
                                 <tbody>
                                     <?php foreach ($applications as $app): ?>
                                         <?php
-                                        $status_badges = [
-                                            'Mottatt'   => 'info',
-                                            'Vurderes'  => 'warning',
-                                            'Tilbud'    => 'success',
-                                            'Avslått'   => 'danger'
-                                        ];
                                         $badge_color = $status_badges[$app['status']] ?? 'secondary';
                                         
                                         // Sjekk om søknaden har uleste meldinger
@@ -138,7 +142,7 @@ require_once '../includes/header.php';
                                             <td>
                                                 <?php echo Validator::sanitize($app['applicant_phone'] ?? 'Ikke oppgitt'); ?>
                                             </td>
-                                            <td><?php echo date('d.m.Y', strtotime($app['created_at'])); ?></td>
+                                            <td><?php echo format_date($app['created_at']); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php echo $badge_color; ?>">
                                                     <?php echo Validator::sanitize($app['status']); ?>
