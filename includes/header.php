@@ -12,7 +12,7 @@
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
-<body class="<?php echo $body_class ?? 'bg-light'; ?>">
+<body class="d-flex flex-column min-vh-100 <?php echo $body_class ?? 'bg-light'; ?>">
     
     <?php if ($show_nav ?? true): ?>
     <!-- Navigation -->
