@@ -35,11 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['withdraw_application'
         redirect('applicant.php', 'Du har ikke tillatelse til å trekke tilbake denne søknaden.', 'danger'); 
     }
 
-    // Blokker trekk på behandlet søknad 
-    if ($application['status'] === 'Tilbud' || $application['status'] === 'Avslått') {
-        redirect('applicant.php', 'Du kan ikke trekke tilbake en søknad som allerede er behandlet.', 'danger');
-    }
-
     if (Application::delete($application_id)) {
         redirect('applicant.php', 'Søknaden ble trukket tilbake.', 'success');
 
@@ -95,7 +90,7 @@ require_once '../includes/header.php';
         <div class="row">
             <div class="col-12">
                 <div class="mb-4">
-                    <h1 class="h2 mb-2">Velkommen, <?php echo Validator::sanitize($user_name); ?>!</h1>
+                    <h1 class="h2 mb-2"><?php echo Validator::sanitize($user_name); ?>!</h1>
                     <p class="text-muted">Finn din neste hjelpelærerstilling</p>
                 </div>
                 <?php render_flash_messages(); ?>

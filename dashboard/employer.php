@@ -44,7 +44,7 @@ require_once '../includes/header.php';
     <div class="row">
         <div class="col-12">
             <div class="mb-4">
-                <h1 class="h2 mb-2">Velkommen, <?php echo Validator::sanitize($user_name); ?>!</h1>
+                <h1 class="h2 mb-2"><?php echo Validator::sanitize($user_name); ?>!</h1>
                 <p class="text-muted">Administrer dine stillingsannonser og søknader</p>
             </div>
 

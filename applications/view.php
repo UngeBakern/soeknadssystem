@@ -138,6 +138,12 @@ require_once '../includes/header.php';
                                 <?php echo Validator::sanitize($application['applicant_email']); ?>
                             </a>
                         </p>
+                        <p class="mb-1">
+                            <strong>Mobil:</strong> 
+                            <a href="tel:<?php echo Validator::sanitize($application['applicant_phone']); ?>">
+                                <?php echo Validator::sanitize($application['applicant_phone']); ?>
+                            </a>
+                        </p>
                     </div>
                     <?php endif; ?>
 
@@ -196,34 +202,6 @@ require_once '../includes/header.php';
                                     <p class="text-muted">Ingen vedlegg.</p>
                                     <?php endif; ?>
                                 </div>
-
-                    <!-- Actions for employer -->
-                    <?php if ($is_employer && $application['status'] !== 'Avslått' && $application['status'] !== 'Tilbud'): ?>
-                    <div class="mt-4 pt-4 border-top">
-                        <h5 class="mb-3">Handlinger</h5>
-                        <div class="d-flex gap-2">
-                            <form method="POST" action="update_status.php" class="d-inline">
-                                <?php echo csrf_field(); ?>
-                                <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
-                                <input type="hidden" name="status" value="Tilbud">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-check me-1"></i>
-                                    Gi tilbud
-                                </button>
-                            </form>
-                            <form method="POST" action="update_status.php" class="d-inline">
-                                <?php echo csrf_field(); ?>
-                                <input type="hidden" name="application_id" value="<?php echo $application['id']; ?>">
-                                <input type="hidden" name="status" value="Avslått">
-                                <button type="submit" class="btn btn-danger"
-                                        onclick="return confirm('Er du sikker på at du vil avslå denne søknaden?');">
-                                    <i class="fas fa-times me-1"></i>
-                                    Avslå
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>

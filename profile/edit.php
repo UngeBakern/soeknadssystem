@@ -31,13 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone      = Validator::clean($_POST['phone']      ?? '');
     $address    = Validator::clean($_POST['address']    ?? '');
 
-    if (!Validator::required($name) || !Validator::required($email)) {
+    if (!Validator::required($name) || !Validator::required($email) || !Validator::required($phone)) {
 
-        show_error('Vennligst fyll ut både navn og e-post.');
+        show_error('Vennligst fyll ut både navn, e-post og telefonnummer.');
 
     } elseif (!Validator::validateEmail($email)) {
 
         show_error('Epost-adressen er ikke gyldig.');
+
+    } elseif (($existing = User::findByEmail($email)) && $existing['id'] != $user_id) {
+
+        show_error('Epost-adressen er allerede i bruk av en annen bruker.');
 
     } elseif (!empty($birthdate) && !Validator::validateDate($birthdate)) {
 
@@ -119,7 +123,7 @@ include_once '../includes/header.php';
                             </div>
                             <div class="mb-3">
                                 <label for="phone" class="form-label">Telefon</label>
-                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="900 00 000" value="<?php echo Validator::sanitize($user['phone'] ?? ''); ?>">
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="900 00 000" value="<?php echo Validator::sanitize($user['phone'] ?? ''); ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="address" class="form-label">Adresse</label>

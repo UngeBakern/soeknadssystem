@@ -105,7 +105,7 @@ class Auth {
         return [
             'id'     => $_SESSION    ['user_id'], 
             'name'   => $_SESSION    ['user_name']   ?? '',
-            'email'  => $_SESSION   ['user_email']  ?? '',
+            'email'  => $_SESSION    ['user_email']  ?? '',
             'role'   => $_SESSION    ['role']        ?? '',
         ];
     }

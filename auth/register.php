@@ -48,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Validation
-    if (!Validator::required($name) || !Validator::required($email) || !Validator::required($password)) {
+    if (!Validator::required($name) || !Validator::required($email) || !Validator::required($password) || !Validator::required($phone)) {
 
-        show_error('Navn, e-post og passord må fylles ut');
-        
+        show_error('Navn, e-post, passord og mobilnummer må fylles ut');
+
     } elseif (!Validator::validateEmail($email)) {
 
         show_error('Ugyldig e-postadresse');
@@ -75,6 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!empty($phone) && !Validator::validatePhone($phone)) {
 
         show_error('Ugyldig telefonnummer.');
+
+    } elseif (!empty($address) && !Validator::validateAddress($address)) {
+
+        show_error('Adressen er ikke gyldig.');
 
     } else {
 
@@ -172,13 +176,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <div class="mb-3">
-                                <label for="phone" class="form-label">Telefonnummer (valgfritt)</label>
+                                <label for="phone" class="form-label">Telefonnummer</label>
                                 <input type="tel" 
                                        class="form-control" 
                                        id="phone" 
                                        name="phone" 
                                        value="<?php echo Validator::sanitize($phone); ?>"
-                                       placeholder="900 00 000">
+                                       placeholder="900 00 000" required>
                             </div>
 
                             <div class="mb-3">

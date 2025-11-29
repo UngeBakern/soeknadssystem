@@ -82,7 +82,7 @@ class Validator {
     }
 
     /**
-     * Valider adresse
+     * Valider adresse 
      */
     public static function validateAddress($address) {
         if (empty(trim($address))) {
@@ -94,8 +94,8 @@ class Validator {
         return false;
         }
 
-        // Tillater bokstaver, tall, mellomrom, komma, punktum, bindestrek og skråstrek
-        if (!preg_match('/^[a-zA-Z0-9æøåÆØÅ\s,.\-\/]+$/u', $address)) {
+        // Tillater bokstaver, tall, mellomrom, komma, punktum, bindestrek og skråstrek og apostrof
+        if (!preg_match('/^[\p{L}0-9\s,.\-\/\'’]+$/u', $address)) {
         return false;
         }
 

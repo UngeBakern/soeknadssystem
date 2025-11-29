@@ -241,7 +241,8 @@ class Application {
                 j.employer_id,
                 u_employer.name as employer_name,
                 u_applicant.name as applicant_name,
-                u_applicant.email as applicant_email
+                u_applicant.email as applicant_email,
+                u_applicant.phone as applicant_phone
             FROM applications a
             LEFT JOIN jobs j ON a.job_id = j.id
             LEFT JOIN users u_employer ON j.employer_id = u_employer.id

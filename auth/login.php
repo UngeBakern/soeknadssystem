@@ -122,9 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </form>
 
                         <div class="text-center">
-                            <p class="mb-2">
-                                <a href="forgot.php" class="text-decoration-none">Glemt passord?</a>
-                            </p>
                             <p>
                                 Har du ikke konto? 
                                 <a href="register.php" class="text-decoration-none">Registrer deg her</a>

@@ -3,10 +3,6 @@
  * Hovedfunksjoner for søknadssystemet
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 /**
  * Vis feilmelding
  */
