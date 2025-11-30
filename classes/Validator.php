@@ -6,6 +6,8 @@ class Validator {
 
     /**
      * Valider e-post format
+     * @param string $email
+     * @return bool
      */
     public static function validateEmail($email) 
     {
@@ -14,6 +16,8 @@ class Validator {
 
     /**
      * Valider påkrevd felt
+     * @param string $value
+     * @return bool
      */
     public static function required($value) {
     return !empty(trim($value));
@@ -21,6 +25,8 @@ class Validator {
 
     /**
      * Valider passord
+     * @param string $password
+     * @return bool
      */
     public static function validatePassword($password) {
 
@@ -45,6 +51,8 @@ class Validator {
 
     /**
      * Sanitize input
+     * @param string|null $data
+     * @return string
      */
     public static function sanitize($data) {
 
@@ -56,6 +64,8 @@ class Validator {
 
     /**
      * Clean input
+     * @param mixed $data
+     * @return mixed
      */
     public static function clean($data) {
         if (!is_string($data)) {
@@ -67,7 +77,10 @@ class Validator {
     }
 
     /**
-     * Valider datoformat 
+     * Valider datoformat
+     * @param string $date
+     * @param string $format
+     * @return bool
      */
     public static function validateDate($date, $format = 'Y-m-d') {
         $d = DateTime::createFromFormat($format, $date);
@@ -76,6 +89,9 @@ class Validator {
 
     /**
      * Valider norsk telefonnummer
+     * @param string $phone
+     * @return bool
+     * 
      */
     public static function validatePhone($phone) {
         // Fjerner mellomrom og spesialtegn
@@ -87,6 +103,9 @@ class Validator {
 
     /**
      * Valider adresse 
+     * @param string $address
+     * @return bool
+     * 
      */
     public static function validateAddress($address) {
         if (empty(trim($address))) {

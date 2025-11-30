@@ -5,7 +5,7 @@
 class Job {
     /**
      * Hent alle stillinger i databasen basert på om de er aktive 
-     * 
+     * @return array
      */
     public static function getAll() 
     {   
@@ -20,13 +20,16 @@ class Job {
             ORDER BY jobs.created_at DESC
             ");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
+            error_log("Database error i Job::getAll: " . $e->getMessage());
             return [];
         }
     }
 
     /**
      * Finn stilling basert på ID 
+     * @param int $id
+     * @return array|null
      */
     public static function findById($id) 
     {
@@ -44,14 +47,23 @@ class Job {
             LIMIT 1
             ");
             $stmt->execute([$id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
+
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                return null;
+            }
+            return $row;
+            
+        } catch (PDOException $e) {
+            error_log("Database error i Job::findById: " . $e->getMessage());
             return null;
         }
     }
 
     /**
      * Oprett ny jobb
+     * @param array $data
+     * @return int|false Returnerer ny jobb-ID eller false ved feil
      */
     public static function create($data)
     {
@@ -83,13 +95,18 @@ class Job {
                 return $pdo->lastInsertId();
             }
             return false; 
+
         } catch (PDOException $e) {
+            error_log("Database error i Job::create: " . $e->getMessage());
             return false;
         }
     }
 
     /**
      * Oppdater jobb men sender ikke inn company fordi den ikke skal endres.
+     * @param int $id
+     * @param array $data
+     * @return bool
      */
     public static function update($id, $data)
     {
@@ -113,8 +130,6 @@ class Job {
             WHERE id = ?
             ");
 
-            error_log("SQL prepared");
-
             $result = $stmt->execute([
                 $data['title'],
                 $data['location'],
@@ -132,16 +147,19 @@ class Job {
             return $result;
 
         } catch (PDOException $e) {
+            error_log("Database error i Job::update: " . $e->getMessage());
             return false; 
         }
     }
 
     /**
      * Slett jobb (soft delete)
+     * @param int $id
+     * @return bool True hvis en rad ble oppdatert
      */
     public static function delete($id)
     {
-        $pdo = Database::connect();
+        $pdo = Database::connect(); 
 
         try {
             $stmt = $pdo->prepare("
@@ -152,14 +170,18 @@ class Job {
             $stmt->execute([$id]);
             return $stmt->rowCount() > 0; // Returner true hvis en rad ble oppdatert
         } catch (PDOException $e) {
+            error_log("Database error i Job::delete: " . $e->getMessage());
             return false;
         }
     }
 
     /**
      * Hent stillinger for en arbeidsgiver
+     * @param int $employerId
+     * @return array
      */
     public static function getByEmployerId($employerId) {
+
         $pdo = Database::connect();
 
         try {
@@ -173,13 +195,16 @@ class Job {
             ");
             $stmt->execute([$employerId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
+            error_log("Database error i Job::getByEmployerId: " . $e->getMessage());
             return [];
         }
     }
 
     /**
-     * Hent inaktive stillinger for en arbeidsgiver 
+     * Hent inaktive stillinger for en arbeidsgiver
+     * @param int $employer_id
+     * @return array
      */
     public static function getInactiveByEmployerId($employer_id) {
 
@@ -196,14 +221,16 @@ class Job {
             ");
             $stmt->execute([$employer_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            error_log("Feil ved henting av inaktive stillinger: " . $e->getMessage());
+        } catch (PDOException $e) {
+            error_log("Database error i Job::getInactiveByEmployerId: " . $e->getMessage());
             return [];
         }
     }
 
     /**
      * Hent tilgjengelige stillinger for en søker (ikke søkt på enda) 
+     * @param int $applicant_id
+     * @return array
      */
 
     public static function getAvailableForApplicant($applicant_id) {
@@ -235,8 +262,8 @@ class Job {
         $stmt->execute([$applicant_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    } catch (Exception $e) {
-        error_log("Feil ved henting av tilgjengelige stillinger for søker: " . $e->getMessage());
+    } catch (PDOException $e) {
+        error_log("Database error i Job::getAvailableForApplicant: " . $e->getMessage());
         return [];
     }
 }

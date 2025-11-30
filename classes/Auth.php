@@ -5,6 +5,7 @@
 class Auth {
     /**
      * Sjekk om bruker er innlogget
+     * @return bool
      */
     public static function isLoggedIn() 
     {
@@ -13,6 +14,7 @@ class Auth {
     
     /**
      * Hent brukerrolle
+     * @return string|null
      */
     public static function getRole() {
         return $_SESSION['role'] ?? null;
@@ -21,6 +23,8 @@ class Auth {
 
     /**
      * Sjekk brukerrolle
+     * @param string $role
+     * @return bool
      */
     public static function hasRole($role) 
     {
@@ -29,6 +33,8 @@ class Auth {
 
     /**
      * Logg inn bruker og setter session verdier
+     * @param array $user
+     * @return void
      */
     public static function login($user) {
         session_regenerate_id(true);
@@ -42,6 +48,7 @@ class Auth {
 
     /**
      * Logg ut bruker
+     * @return void
      */
     public static function logout() {
 
@@ -57,6 +64,9 @@ class Auth {
 
     /**
      * Autentiser bruker med epost og passord
+     * @param string $email
+     * @param string $password
+     * @return array|false Returnerer bruker-array ved suksess, ellers false
      */
     public static function attempt($email, $password) {
 
@@ -75,6 +85,9 @@ class Auth {
 
     /**
      * Verifiser passord mot hash
+     * @param string $password
+     * @param string $hash
+     * @return bool
      */
     private static function verifyPassword($password, $hash) {
         return password_verify($password, $hash);
@@ -82,6 +95,8 @@ class Auth {
 
     /**
      * Hash passord
+     * @param string $password
+     * @return string
      */
     public static function hashPassword($password) {
         return password_hash($password, PASSWORD_DEFAULT);
@@ -89,6 +104,7 @@ class Auth {
 
     /**
      * Hent bruker ID
+     * @return int|null
      */
     public static function id() {
         return $_SESSION['user_id'] ?? null; 
@@ -96,6 +112,7 @@ class Auth {
 
     /**
      * Hent brukerdata fra session
+     * @return array|null
      */
     public static function user() {
         if (!self::isLoggedIn()) {
@@ -103,10 +120,10 @@ class Auth {
         }
 
         return [
-            'id'     => $_SESSION    ['user_id'], 
-            'name'   => $_SESSION    ['user_name']   ?? '',
-            'email'  => $_SESSION    ['user_email']  ?? '',
-            'role'   => $_SESSION    ['role']        ?? '',
+            'id'     => $_SESSION['user_id'], 
+            'name'   => $_SESSION['user_name'] ?? '',
+            'email'  => $_SESSION['user_email'] ?? '',
+            'role'   => $_SESSION['role'] ?? '',
         ];
     }
 

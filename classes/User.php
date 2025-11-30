@@ -5,6 +5,8 @@
 class User {
     /**
      * Finn bruker basert på e-post
+     * @param string $email
+     * @return array|null
      */
     public static function findByEmail($email) 
     {
@@ -13,15 +15,23 @@ class User {
         try {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
             $stmt->execute([$email]);
-            return $stmt->fetch();
+
+            $row = $stmt->fetch();
+            if (!$row) {
+                return null;
+            }
+            return $row;
+            
         } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
+            error_log("Database error i User::findByEmail: " . $e->getMessage());
             return null;
         }
     }
     
     /**
      * Finn bruker basert på ID
+     * @param int $id
+     * @return array|null
      */
     public static function findById($id) 
     {
@@ -30,15 +40,24 @@ class User {
         try {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
             $stmt->execute([$id]);
-            return $stmt->fetch();
+
+            $row = $stmt->fetch();
+            if (!$row) {
+                return null;
+            }
+            return $row;
+            
         } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
+
+            error_log("Database error i User::findById: " . $e->getMessage());
             return null;
         }
     }
 
     /**
      * Opprett ny bruker
+     * @param array $data
+     * @return int|false Returnerer ny ID eller false
      */
     public static function create($data) 
     {
@@ -61,13 +80,16 @@ class User {
             return $pdo->lastInsertId();
 
         } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
+            error_log("Database error i User::create: " . $e->getMessage());
             return false;
         }
     }
 
     /**
      * Oppdater brukerinfo
+     * @param int $id
+     * @param array $data
+     * @return bool
      */
     public static function update($id, $data)
     {
@@ -98,12 +120,15 @@ class User {
             return $result;
 
         } catch (PDOException $e) {
+            error_log("Database error i User::update: " . $e->getMessage());
             return false; 
         }
     }
 
     /**
      * Slett bruker
+     * @param int $id
+     * @return bool
      */
     public static function delete($id)
     {
@@ -113,7 +138,7 @@ class User {
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
             return $stmt->execute([$id]);
         } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
+            error_log("Database error i User::delete: " . $e->getMessage());
             return false;
         }
     }

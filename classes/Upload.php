@@ -172,6 +172,7 @@ class Upload {
             
             return $pdo->lastInsertId();
         } catch (PDOException $e) {
+            error_log("Database error i Upload::saveDocumentToDatabase: " . $e->getMessage());
             return false;
         }
     }
@@ -269,6 +270,7 @@ class Upload {
     {
         $pdo = Database::connect();
 
+        try {
             // Sjekk at dokumentet tilhører brukeren
             $stmt = $pdo->prepare("
                 SELECT id
@@ -289,6 +291,10 @@ class Upload {
 
             return $stmt->execute([$application_id, $document_id]);
 
+        } catch (PDOException $e) {
+            error_log("Database error in attachToApplication: " . $e->getMessage());
+            return false;
+        }
     }
 
     /** 
