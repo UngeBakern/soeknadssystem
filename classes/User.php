@@ -52,7 +52,7 @@ class User {
                 $data['email'],
                 $data['phone'],
                 $data['role'],
-                password_hash($data['password'], PASSWORD_DEFAULT),
+                Auth::hashPassword($data['password']),
                 $data['birthdate'],
                 $data['address']
             ]);
@@ -62,27 +62,6 @@ class User {
 
         } catch (PDOException $e) {
             error_log("Database error: " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Lagre tilbakestillingstoken for glemt passord 
-     */
-    public static function saveResetToken($user_id, $token, $expires) 
-    {
-        $pdo = Database::connect();
-
-        try {
-            $stmt = $pdo->prepare("
-                UPDATE users 
-                SET reset_token = ?,
-                    reset_token_expires = ? 
-                WHERE id = ?
-            "); 
-            return $stmt->execute([$token, $expires, $user_id]);
-        } catch (PDOException $e) {
-            error_log("User::saveResetToken() " . $e->getMessage());
             return false;
         }
     }
@@ -111,8 +90,8 @@ class User {
                 'name'      => $data['name']        ?? '',
                 'email'     => $data['email']       ?? '',
                 'phone'     => $data['phone']       ?? '',
-                'birthdate' => $data['birthdate']   ?? '',
-                'address'   => $data['address']     ?? '',
+                'birthdate' => $data['birthdate']   ?: null,
+                'address'   => $data['address']     ?: null,
                 'id'        => $id
             ]);
 

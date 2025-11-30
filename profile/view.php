@@ -50,7 +50,13 @@ include_once '../includes/header.php';
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Fødselsdato</span>
-                                <strong><?php echo Validator::sanitize($user['birthdate']); ?></strong>
+                                <strong>
+                                    <?php 
+                                    echo $user['birthdate'] ? 
+                                        Validator::sanitize($user['birthdate']) : 
+                                        'Ikke oppgitt';
+                                    ?>
+                                </strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Telefon</span>
@@ -58,7 +64,11 @@ include_once '../includes/header.php';
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Adresse</span>
-                                <strong><?php echo Validator::sanitize($user['address']); ?></strong>
+                                <strong>
+                                    <?php echo $user['address'] ? 
+                                        Validator::sanitize($user['address']) : 
+                                        'Ikke oppgitt'; ?>
+                                </strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Brukertype</span>

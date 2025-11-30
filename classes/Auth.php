@@ -66,7 +66,7 @@ class Auth {
             return false; 
         }
 
-        if (!password_verify($password, $user['password_hash'])) {
+        if (!self::verifyPassword($password, $user['password_hash'])) {
             return false; 
         }
 
@@ -76,7 +76,7 @@ class Auth {
     /**
      * Verifiser passord mot hash
      */
-    public static function verifyPassword($password, $hash) {
+    private static function verifyPassword($password, $hash) {
         return password_verify($password, $hash);
     }
 

@@ -81,9 +81,7 @@ require_once '../includes/header.php';
                             <?php endif; ?>
                         </div>
                     </div>
-
                     <hr>
-
                     <!-- Stillingsbeskrivelse -->
                     <div class="mb-4">
                         <h5 class="mb-3">
