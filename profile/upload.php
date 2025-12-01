@@ -9,7 +9,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk om bruker er innlogget
-auth_check(['applicant']);
+auth_check(['applicant', 'admin']);
 
 $user_id = Auth::id();
 
@@ -20,16 +20,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
     
     if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
    
-        $result = Upload::uploadDocument(
+        $document_type = $_POST['document_type'] ?? 'other';
+
+        // Ny Upload::uploadDocument() -> returnerer dokument_id eller false
+        $document_id = Upload::uploadDocument(
             $_FILES['document'],
             $user_id,
-            $_POST['document_type'] ?? 'other'
+            $document_type
         );
     
-        if ($result['success']) {
-            redirect('upload.php', $result['message'], 'success');
+        if ($document_id) {
+            // show_error() er allerede håndtert inne i Upload ved feil
+            redirect('upload.php', 'Dokumentet er lastet opp!', 'success');
         } else {
-            redirect('upload.php', $result['message'], 'danger');
+            redirect('upload.php', 'Feil ved opplasting av dokument.', 'danger');
         }
 
     } else {
@@ -45,12 +49,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
     $document_id = filter_input(INPUT_POST, 'document_id', FILTER_VALIDATE_INT);
 
     if ($document_id) {
-        $result = Upload::deleteDocument($document_id, $user_id);
+        // Ny deleteDocument() -> returnerer true/false
+        $deleted = Upload::deleteDocument($document_id, $user_id);
 
-        if ($result['success']) {
-            redirect('upload.php', $result['message'], 'success');
+        if ($deleted) {
+            redirect('upload.php', 'Dokumentet er slettet.', 'success');
         } else {
-            redirect('upload.php', $result['message'], 'danger');
+            redirect('upload.php', 'Kunne ikke slette dokumentet.', 'danger');
         }
     }
     
@@ -141,12 +146,12 @@ include_once '../includes/header.php';
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-file-<?php echo $doc['file_type'] === 'pdf' ? 'pdf' : 'alt'; ?> fa-2x text-primary me-3"></i>
-                                                <div>
-                                                <h6 class="mb-0">
+                                        <div>
+                                            <h6 class="mb-0">
                                                 <a href="../<?php echo Validator::sanitize($doc['file_path']); ?>" 
-                                                target="_blank" 
-                                                class="text-decoration-none text-dark fw-semibold">
-                                                <?php echo Validator::sanitize($doc['original_filename']); ?>
+                                                   target="_blank" 
+                                                   class="text-decoration-none text-dark fw-semibold">
+                                                    <?php echo Validator::sanitize($doc['original_filename']); ?>
                                                 </a>
                                             </h6>
                                             <small class="text-muted">
@@ -167,13 +172,13 @@ include_once '../includes/header.php';
                                     <div class="btn-group" role="group">
                                         <form method="POST" style="display: inline;" 
                                               onsubmit="return confirm('Er du sikker på at du vil slette dette dokumentet?');">
-                                              <?php echo csrf_field(); ?>
+                                            <?php echo csrf_field(); ?>
                                             <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
                                             <button type="submit" 
                                                     name="delete" 
                                                     class="btn btn-sm btn-outline-danger"
-                                                    title="Slett dokument">Slett 
-                                                <i class="fas fa-trash"></i>
+                                                    title="Slett dokument">
+                                                Slett <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </div>

@@ -1,5 +1,7 @@
 <?php 
-
+/**
+ * Database Class - Enkel databaseforbindelse med PDO
+ */
 class Database {
     
     private static $pdo = null;

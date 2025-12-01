@@ -21,7 +21,7 @@ class User {
                 return null;
             }
             return $row;
-            
+
         } catch (PDOException $e) {
             error_log("Database error i User::findByEmail: " . $e->getMessage());
             return null;
@@ -122,24 +122,6 @@ class User {
         } catch (PDOException $e) {
             error_log("Database error i User::update: " . $e->getMessage());
             return false; 
-        }
-    }
-
-    /**
-     * Slett bruker
-     * @param int $id
-     * @return bool
-     */
-    public static function delete($id)
-    {
-        $pdo = Database::connect();
-
-        try {
-            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-            return $stmt->execute([$id]);
-        } catch (PDOException $e) {
-            error_log("Database error i User::delete: " . $e->getMessage());
-            return false;
         }
     }
 

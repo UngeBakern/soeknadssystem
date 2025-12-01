@@ -246,7 +246,7 @@ require_once '../includes/header.php';
                                         title="Vis">
                                             Vis
                                         </a>
-                                        <form method="POST" action="../jobs/reactivate.php" class="m-0 p-0">
+                                        <form method="POST" action="#" class="m-0 p-0">
                                             <input type="hidden" name="job_id" value="<?php echo $job['id']; ?>">
                                             <button type="submit" 
                                                     class="btn btn-outline-success btn-sm"

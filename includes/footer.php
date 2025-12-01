@@ -9,9 +9,9 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted small mb-0">
-                        <a href="<?php echo BASE_URL; ?>/pages/about.php" class="text-muted me-3 text-decoration-none">Om oss</a>
-                        <a href="<?php echo BASE_URL; ?>/pages/contact.php" class="text-muted me-3 text-decoration-none">Kontakt</a>
-                        <a href="<?php echo BASE_URL; ?>/pages/support.php" class="text-muted text-decoration-none">Support</a>
+                        <a href="#" class="text-muted me-3 text-decoration-none">Om oss</a>
+                        <a href="#" class="text-muted me-3 text-decoration-none">Kontakt</a>
+                        <a href="#" class="text-muted text-decoration-none">Support</a>
                     </p>
                 </div>
             </div>

@@ -6,7 +6,7 @@ require_once '../includes/autoload.php';
  */
 
 // Sjekk innlogging og rolle 
-auth_check(['applicant']);
+auth_check(['applicant', 'admin']);
 
 //Innlogget bruker 
 $user      = Auth::user();

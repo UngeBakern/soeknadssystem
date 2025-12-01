@@ -81,10 +81,6 @@ include_once '../includes/header.php';
                                 <i class="fas fa-edit me-2"></i>
                                 Rediger profil
                             </a>
-                            <button type="button" class="btn btn-outline-danger" onclick="alert('Er du sikker på at du vil slette kontoen? Dette kan ikke angres.')">
-                                <i class="fas fa-trash me-2"></i>
-                                Slett konto
-                            </button>
                         </div>
                     </div>
                 </div>

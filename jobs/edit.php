@@ -106,11 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'job_type'       => $job_type,
             'description'    => $description,
             'requirements'   => $requirements,
-            'salary'         => $salary,
+            'salary'         => $salary ?: null,
             'deadline'       => $deadline,
             'status'         => $status,
-            'subject'        => $subject,
-            'education_level'=> $education_level
+            'subject'        => $subject ?: null,
+            'education_level'=> $education_level ?: null
         ];
 
         if (Job::update($job_id, $updated_job)) {

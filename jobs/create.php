@@ -23,7 +23,6 @@ $job_type       = '';
 $subject        = '';
 $education_level= '';
 $deadline       = '';
-$hours_per_week = '';
 
 // Håndter POST-request  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -38,8 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subject        = Validator::clean($_POST['subject']              ?? '');
     $education_level= Validator::clean($_POST['education_level']      ?? '');
     $deadline       = Validator::clean($_POST['deadline']             ?? '');
-    $hours_per_week = Validator::clean($_POST['hours_per_week']       ?? '');
-    //TODO Lagre hours_per_week i databasen senere.
     
     // Whitelist på select felter 
     $allowed_job_types = ['Heltid', 'Deltid', 'Ekstrahjelp', 'Vikariat'];
@@ -94,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'job_type'       => $job_type,
             'subject'        => $subject ?: null,
             'education_level'=> $education_level ?: null,
-            'deadline'       => $deadline,
+            'deadline'       => $deadline, 
             'status'         => 'active'   
         ];
 
@@ -180,15 +177,6 @@ require_once '../includes/header.php';
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label for="hours_per_week" class="form-label">
-                                        <i class="fas fa-hourglass-half me-1"></i>
-                                        Timer per uke
-                                    </label>
-                                    <input type="number" class="form-control" id="hours_per_week" name="hours_per_week" 
-                                           value="<?php echo Validator::sanitize($hours_per_week) ?>"
-                                           min="1" max="40" placeholder="F.eks. 20">
-                                </div>
                                 <div class="col-md-6 mb-2">
                                     <label for="salary" class="form-label">
                                         <i class="fas fa-money-bill-wave me-1"></i>
