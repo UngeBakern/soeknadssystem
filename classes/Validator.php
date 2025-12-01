@@ -50,7 +50,7 @@ class Validator {
     }
 
     /**
-     * Sanitize input
+     * Sanitize input - Escape for safe HTML output
      * @param string|null $data
      * @return string
      */
@@ -63,7 +63,8 @@ class Validator {
     }
 
     /**
-     * Clean input
+     * Clean input - Trim og normaliser linjeskift - Og fjerner unødvendige tegn
+     * OUTPUT: Rå input for lagring i database eller videre prosessering
      * @param mixed $data
      * @return mixed
      */
